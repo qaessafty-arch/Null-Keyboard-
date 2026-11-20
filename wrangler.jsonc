@@ -1,7 +1,10 @@
 // Cloudflare Workers deployment (free plan). See README → "Put it online".
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "null-tech",
+  "name": "null-keyboard",
+  // Must match the deployed Worker name, or deploys create a second site.
+  "workers_dev": true,
+  "preview_urls": false,
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   // node:crypto for the shared SignalingHub (room codes, tokens)
