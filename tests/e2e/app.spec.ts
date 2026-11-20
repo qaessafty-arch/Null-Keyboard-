@@ -189,3 +189,36 @@ test('portrait layout keeps the keyboard within the viewport', async ({ page }) 
   const noHScroll = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   expect(noHScroll).toBe(true);
 });
+
+test('NULL-TECH shell: splash hands over, nav indicator follows the active section', async ({ page }) => {
+  await page.goto('/#/connect');
+  await expect(page).toHaveTitle('NULL-TECH');
+  await expect(page.locator('#boot')).toHaveCount(0, { timeout: 3000 });
+  const indicator = page.locator('.nav__indicator');
+  const x1 = await indicator.evaluate((el) => el.getBoundingClientRect().left);
+  const linkX = await page.locator('.nav__link', { hasText: 'Connect' }).evaluate((el) => el.getBoundingClientRect().left);
+  expect(Math.abs(x1 - linkX)).toBeLessThan(2);
+  await page.locator('.nav__link', { hasText: 'Performance' }).click();
+  await page.waitForTimeout(400); // spring transition
+  const x2 = await indicator.evaluate((el) => el.getBoundingClientRect().left);
+  const perfX = await page.locator('.nav__link', { hasText: 'Performance' }).evaluate((el) => el.getBoundingClientRect().left);
+  expect(Math.abs(x2 - perfX)).toBeLessThan(2);
+});
+
+test('phone layout swaps the section links for a bottom tab bar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/#/touch');
+  await expect(page.locator('.tabbar')).toBeVisible();
+  await expect(page.locator('.nav__links')).toBeHidden();
+  await page.locator('.tabbar__item', { hasText: 'Settings' }).click();
+  await expect(page).toHaveURL(/#\/settings$/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('performance charts draw from real samples', async ({ page }) => {
+  await page.goto('/#/performance');
+  // The 1 Hz sampler needs two points before a line can be drawn.
+  await expect(page.locator('.pcard').first().locator('.spark path')).not.toHaveCount(0, { timeout: 5000 });
+  // No camera → network card says so instead of inventing numbers.
+  await expect(page.locator('.pcard', { hasText: 'Network' })).toContainText('—');
+});

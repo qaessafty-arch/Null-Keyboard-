@@ -1,4 +1,4 @@
-# NEO TYPE — Development Plan
+# NULL-TECH — Development Plan
 
 > Status: **v1.0.0 — all stages implemented and automatically verified.** Hardware checks on the Surface Pro 7 and S25 Ultra are still pending (marked ⬜).
 
@@ -42,7 +42,7 @@ until done on real hardware.
 ### Honest technical limitations (known up front)
 
 1. **No system-wide typing.** A browser app cannot inject keystrokes into other
-   Windows apps. NEO TYPE provides a built-in editor, copy, and TXT download.
+   Windows apps. NULL-TECH provides a built-in editor, copy, and TXT download.
    The engine emits standardized events so a future native companion (e.g. a
    small Tauri/Win32 helper receiving events over a local WebSocket) can add
    system-wide input.
@@ -162,6 +162,16 @@ composition roots and should not live inside reusable `components/`.
 - ✅ README, `docs/USER_GUIDE.md`, `docs/LIMITATIONS.md`
 - ✅ Full automated test pass (below)
 
+### v1.1 — NULL-TECH interface redesign ✅
+- ✅ Design tokens (graphite, brand green, laser red, status scale, type, spacing, radii, motion)
+- ✅ Custom fingerprint ∅ brand mark (one geometry source → component, favicon, PWA icons, splash); scanning / active / success states
+- ✅ Floating navigation with sliding indicator; compact phone / camera / tracking / mode / laser indicators; phone tab bar
+- ✅ Connect: camera stage (landmark toggle, expand, fullscreen, quiet states), CV overlay with per-hand identity colours and confidence chips, one-surface metrics strip, guided steps completed from real link state, QR card, placement diagram
+- ✅ Calibration: scanning header, progress, hand-position guide, live detection feedback, accuracy rings (on-target %, press vs jitter ×), completion card
+- ✅ Performance: 1 Hz history sampler of real measurements, sparkline charts with gaps for missing data, excellent/good/warning/critical grading, system info
+- ✅ Workspace interaction capsule, Air inspector with press-method control; Home, Phone, Settings, About in the new language
+- Bugs found while verifying: the fading boot splash swallowed the first tap (now `pointer-events: none`); tablet nav overflow at 1024 px; overlay labels too small on smaller previews; nav mode radios clashed with the Settings tabs (now `aria-pressed` buttons)
+
 ## 4. Verification log
 
 | Date | Stage | Check | Result |
@@ -176,6 +186,8 @@ composition roots and should not live inside reusable `components/`.
 | 2026-11-20 | 3–7 | `npm run test:e2e` | ✅ 19/19 (13 UI + 6 real camera pipeline with MediaPipe test image) |
 | 2026-11-20 | 3–7 | Production server (`npm start`) with CSP: pairing + GPU worker tracking | ✅ 2 hands, 0 console errors |
 | — | 3–5 | S25 Ultra over Wi-Fi, real hands, motion presses | ⬜ pending, needs hardware |
+| 2026-11-20 | v1.1 | `npm test` / `npm run test:e2e` after the redesign | ✅ 104/104 · 22/22 (adds splash, nav indicator, phone tab bar, real-data charts, guided steps) |
+| 2026-11-20 | v1.1 | Screenshot tour with the live pipeline: 1368×912, 1024×1366, 390×844 (all sections) | ✅ 0 console errors, no horizontal overflow |
 
 ### Bugs found and fixed during verification
 - Page overflowed horizontally in portrait: the app grid's implicit column grew to the top bar's min-content. Fixed with `grid-template-columns: minmax(0, 1fr)`.

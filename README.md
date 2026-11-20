@@ -1,4 +1,4 @@
-# NEO TYPE
+# NULL-TECH
 
 A dual-input virtual keyboard with a laser-holographic look. You can type in two ways:
 
@@ -9,6 +9,8 @@ Both modes feed the same keyboard engine, editor, settings and visuals.
 
 Target setup: Microsoft Surface Pro 7 (i7, 16 GB) and a Samsung Galaxy S25 Ultra. No cloud, no API keys, no extra hardware.
 
+> **Version 1.1.0: NULL-TECH design system.** The interface was redesigned around a calm graphite surface language, a custom fingerprint brand mark, and instrument-grade camera, calibration and performance views. Functionality is unchanged and the same tests pass. See [Design system](#design-system).
+>
 > **Version 1.0.0.** All seven stages of the specification are implemented and tested automatically. That includes the full camera pipeline, using MediaPipe's own hand photos as a fake camera.
 > **Not yet tested on the real devices** (Surface touchscreen and pen, the S25 Ultra camera, real hands typing in the air). Read [Known limitations](docs/LIMITATIONS.md) before judging Air Mode.
 
@@ -61,7 +63,7 @@ Open **Calibrate** with the phone connected. It takes about a minute:
 1. **Camera position.** Live checks: both hands visible, hand size in the frame, framing, and lighting (measured from the video).
 2. **Keyboard area.** Drag the four corners onto the desk where you want to type, or set each corner by holding your index fingertip still on it. The full key grid is drawn onto the live video, so you can see where every key is.
 3. **Resting hands.** Hold your hands still in typing position for 3 seconds. This records your neutral finger pose and natural jitter.
-4. **Press calibration.** Tap the prompted keys (F, J, D, K, Space …) at least 6 times. NEO TYPE learns which way your fingertips move when you press from this camera angle, and how far. It also reports how clearly a press stands out from jitter and how many presses landed on the right key.
+4. **Press calibration.** Tap the prompted keys (F, J, D, K, Space …) at least 6 times. NULL-TECH learns which way your fingertips move when you press from this camera angle, and how far. It also reports how clearly a press stands out from jitter and how many presses landed on the right key.
    - If presses aren't picked up from your camera angle, choose **Use dwell instead**: hold an index fingertip still on a key to type it.
 5. **Test.** Type here and watch the keys under your fingertips light up. Then choose **Start air typing**.
 
@@ -103,7 +105,7 @@ The calibration is saved on this device (IndexedDB). You can **Recalibrate** fro
 
 ### Optional: trusted HTTPS with mkcert
 
-This removes the certificate warnings and lets the Surface install NEO TYPE as an app.
+This removes the certificate warnings and lets the Surface install NULL-TECH as an app.
 
 ```powershell
 winget install FiloSottile.mkcert
@@ -184,6 +186,26 @@ What the tests cover:
 **Not verified here:**
 - **Real hardware.** The touchscreen, the Surface Pen, the S25 Ultra over real Wi-Fi, and GPU speed on Iris Plus graphics. This container renders WebGL in software: MediaPipe took about 1.8 s per frame on GPU and about 130 ms on CPU (with two hands).
 - **Motion presses with real hands.** A still image can't press, so motion detection is covered by unit tests with synthetic motion only. Expect to tune sensitivity and the activation threshold on the real setup.
+
+## Design system
+
+NULL-TECH's interface follows one rule: *precision is beautiful; complexity should disappear.*
+
+| Element | Definition |
+| --- | --- |
+| Brand mark | A custom fingerprint: seven open loop ridges cut by a diagonal **∅** (null) slash, with a brand-green core. It comes from one pure function (`src/brand/fingerprint.ts`) that feeds the React component, favicon, PWA icons and boot splash (`node scripts/gen-brand.ts`). |
+| Where the mark appears | Logo, boot splash (scanning), Connect page states, calibration header (scanning → active → success), tracking indicator in the nav, a 2 % watermark behind the workspace, favicon. It is used sparingly on purpose. |
+| Colour | Graphite surfaces `#090B10 / #11141C / #191D27`, text `#F5F6FA / #9299A8`, borders `rgba(255,255,255,0.09)`. **Brand green `#32E6A0`** is for primary actions, completion and live tracking. **Laser red `#FF365D`** is only for the laser keyboard and live-camera states. Status scale: excellent / good / warning / critical. |
+| Type | SF Pro Display / Text, then Segoe UI Variable (native on the Surface), then Inter. SF Mono, JetBrains Mono or Cascadia for measurements. Sentence-case labels, no shouty tracking. |
+| Space and shape | 4 px grid; radii 6 / 8 / 12 / 16 / 22. |
+| Motion | 180 ms (controls), 260 ms (navigation, a light spring), 420 ms (page enter). Fingerprint scan and pulse only while something is actually happening. All motion respects *reduce motion*. |
+| Icons | One custom line set (1.5 px stroke, 20 px grid) in `components/common/Icon.tsx`. No emoji, no mixed icon libraries. |
+| Tokens | `src/styles/tokens.css`. Components: `app.css`; page styles: `connect.css`, `calibrate.css`, `performance.css`, `phone.css`; keyboard: `components/keyboard/keyboard.css`. |
+
+Responsive behaviour:
+- **Desktop and Surface:** floating glass navigation with a sliding active indicator and compact status indicators.
+- **Tablet:** the same navigation; fullscreen and laser move to Settings.
+- **Phones:** brand and status stay on top; the sections move to a bottom tab bar.
 
 ## Docs
 

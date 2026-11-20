@@ -21,13 +21,13 @@
   padding: calc(var(--pad) + 6px) var(--pad) var(--pad);
   border-radius: var(--r-xl);
   background:
-    radial-gradient(120% 90% at 50% -10%, rgb(var(--accent-rgb) / 0.08), transparent 60%),
-    linear-gradient(180deg, rgb(16 21 37 / 0.72), rgb(8 10 18 / 0.9));
-  border: 1px solid rgb(var(--accent-rgb) / 0.16);
+    radial-gradient(120% 80% at 50% -12%, rgb(var(--accent-rgb) / 0.06), transparent 60%),
+    linear-gradient(180deg, #12151d, #0b0d12);
+  border: 1px solid var(--border);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.03),
-    0 40px 90px -40px rgb(var(--accent-rgb) / calc(0.45 * var(--glow))),
-    0 20px 40px -20px rgb(0 0 0 / 0.8);
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 40px 90px -46px rgb(var(--accent-rgb) / calc(0.35 * var(--glow))),
+    0 24px 48px -24px rgb(0 0 0 / 0.85);
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
@@ -46,8 +46,8 @@
   transform: translateX(-50%);
   border-radius: 0 0 4px 4px;
   background: linear-gradient(90deg, transparent, var(--accent) 30%, #fff 50%, var(--accent) 70%, transparent);
-  box-shadow: 0 0 calc(18px * var(--glow)) rgb(var(--accent-rgb) / 0.9);
-  opacity: 0.9;
+  box-shadow: 0 0 calc(14px * var(--glow)) rgb(var(--accent-rgb) / 0.8);
+  opacity: 0.85;
   z-index: 2;
 }
 
@@ -107,13 +107,13 @@
   border-radius: inherit;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgb(var(--accent-rgb) / 0.09), rgb(var(--accent-rgb) / 0.015) 55%, rgb(0 0 0 / 0.12)),
-    rgb(18 24 40 / var(--key-opacity));
-  border: 1px solid rgb(var(--accent-rgb) / 0.5);
+    linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0.01) 50%, rgb(0 0 0 / 0.12)),
+    rgb(25 29 39 / var(--key-opacity));
+  border: 1px solid rgb(var(--accent-rgb) / 0.42);
   box-shadow:
-    inset 0 0 calc(12px * var(--glow)) rgb(var(--accent-rgb) / 0.14),
-    inset 0 1px 0 rgb(255 255 255 / 0.05),
-    0 0 calc(10px * var(--glow)) rgb(var(--accent-rgb) / 0.16),
+    inset 0 0 calc(10px * var(--glow)) rgb(var(--accent-rgb) / 0.1),
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 0 calc(8px * var(--glow)) rgb(var(--accent-rgb) / 0.12),
     0 3px 6px rgb(0 0 0 / 0.45);
   transition:
     transform 110ms var(--ease-out),
@@ -134,22 +134,23 @@
 .key__main {
   position: relative;
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 0.33);
-  font-weight: 500;
+  font-size: calc(var(--u) * 0.32);
+  font-weight: 450;
   line-height: 1;
   color: var(--text);
-  text-shadow: 0 0 calc(8px * var(--glow)) rgb(var(--accent-rgb) / 0.55);
+  text-shadow: 0 0 calc(6px * var(--glow)) rgb(var(--accent-rgb) / 0.4);
 }
 
 .key--wide .key__main,
 .key--modifier .key__main,
 .key--toggle .key__main,
 .key--action .key__main {
-  font-family: var(--font-mono);
-  font-size: clamp(9px, calc(var(--u) * 0.165), 14px);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgb(244 247 255 / 0.88);
+  font-family: var(--font-ui);
+  font-size: clamp(10px, calc(var(--u) * 0.18), 14px);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: lowercase;
+  color: rgb(245 246 250 / 0.82);
 }
 
 /* Arrow glyphs stay large */
@@ -159,19 +160,19 @@
   letter-spacing: 0;
 }
 .key[data-key^='Arrow'].is-fn .key__main {
-  font-family: var(--font-mono);
-  font-size: clamp(9px, calc(var(--u) * 0.16), 13px);
-  letter-spacing: 0.06em;
+  font-family: var(--font-ui);
+  font-size: clamp(10px, calc(var(--u) * 0.17), 13px);
+  letter-spacing: 0;
 }
 
 .key__sub {
   position: absolute;
   top: calc(var(--u) * 0.07);
   left: calc(var(--u) * 0.12);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(var(--u) * 0.18);
   line-height: 1;
-  color: var(--text-2);
+  color: var(--text-3);
 }
 
 /* Space bar: a laser line instead of a legend */
@@ -198,8 +199,8 @@
   transition: background-color 140ms, box-shadow 140ms;
 }
 .key.is-active .key__led {
-  background: var(--ok);
-  box-shadow: 0 0 8px var(--ok);
+  background: var(--brand);
+  box-shadow: 0 0 6px var(--brand);
 }
 
 /* Hover (mouse, pen hover) */
@@ -298,7 +299,6 @@
   .key--modifier .key__main,
   .key--toggle .key__main,
   .key--action .key__main {
-    letter-spacing: 0.02em;
-    font-size: clamp(8px, calc(var(--u) * 0.2), 12px);
+    font-size: clamp(9px, calc(var(--u) * 0.21), 12px);
   }
 }

@@ -1,52 +1,112 @@
-/* NEO TYPE design tokens. The app is dark by design (laser light reads only on dark). */
+/* ─────────────────────────────────────────────────────────────────────────
+   NULL-TECH design tokens
+   Calm graphite surfaces, one brand colour (signal green) used sparingly,
+   laser red reserved for the laser keyboard and live-camera states.
+   ───────────────────────────────────────────────────────────────────────── */
 :root {
   color-scheme: dark;
 
-  --bg-0: #080a12;
-  --bg-1: #101525;
-  --panel: #141b2b;
-  --panel-2: #182033;
+  /* Surfaces */
+  --bg: #090b10;
+  --bg-2: #0c0f15;
+  --surface: #11141c;
+  --surface-2: #191d27;
+  --surface-3: #222734;
+  --glass: rgb(17 20 28 / 0.72);
+  --glass-strong: rgb(21 25 34 / 0.86);
 
-  --laser: #ff174f;
-  --pink: #ff3d81;
-  --cyan: #00e5ff;
-  --blue: #438bff;
+  /* Lines */
+  --border: rgb(255 255 255 / 0.09);
+  --border-strong: rgb(255 255 255 / 0.15);
+  --hairline: rgb(255 255 255 / 0.06);
 
-  --text: #f4f7ff;
-  --text-2: #8792a8;
-  --text-3: #5b6479;
+  /* Text */
+  --text: #f5f6fa;
+  --text-2: #9299a8;
+  --text-3: #636b7c;
+  --text-on-brand: #04140d;
 
-  --ok: #36e69a;
-  --warn: #ffb547;
-  --err: #ff4568;
+  /* Brand & function */
+  --brand: #32e6a0;
+  --brand-rgb: 50 230 160;
+  --laser: #ff365d;
+  --laser-rgb: 255 54 93;
 
-  --line: rgb(135 146 168 / 0.14);
-  --line-strong: rgb(135 146 168 / 0.26);
+  /* Status scale (excellent → critical) */
+  --s-excellent: #32e6a0;
+  --s-good: #a3e35f;
+  --s-warn: #ffb547;
+  --s-crit: #ff4d6a;
+  --s-idle: #636b7c;
+  --ok: var(--s-excellent);
+  --warn: var(--s-warn);
+  --err: var(--s-crit);
 
-  --font-ui: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
-  --font-display: 'Segoe UI Variable Display', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, ui-monospace, 'SF Mono', Menlo, monospace;
+  /* Type */
+  --font-display: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Display', 'Segoe UI', Inter, system-ui,
+    sans-serif;
+  --font-ui: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI', Inter, system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', 'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace;
 
-  --r-s: 6px;
-  --r-m: 10px;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-17: 17px;
+  --fs-20: 20px;
+  --fs-28: 28px;
+  --fs-34: clamp(26px, 2.6vw, 34px);
+
+  /* Space (4 px grid) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* Shape */
+  --r-xs: 6px;
+  --r-s: 8px;
+  --r-m: 12px;
   --r-l: 16px;
   --r-xl: 22px;
 
-  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --topbar-h: 56px;
-  --statusbar-h: 34px;
+  /* Elevation */
+  --shadow-1: 0 1px 0 rgb(255 255 255 / 0.035) inset, 0 10px 30px -18px rgb(0 0 0 / 0.75);
+  --shadow-2: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 60px -28px rgb(0 0 0 / 0.85);
+  --shadow-pop: 0 0 0 1px var(--border-strong), 0 30px 80px -24px rgb(0 0 0 / 0.9);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: var(--ease-standard);
+  --ease-spring: cubic-bezier(0.34, 1.26, 0.64, 1);
+  --dur-1: 180ms;
+  --dur-2: 260ms;
+  --dur-3: 420ms;
+
+  /* Layout */
+  --nav-h: 52px;
+  --statusbar-h: 30px;
+  --topbar-h: var(--nav-h);
 }
 
+/* Keyboard laser theme. Chrome stays neutral; only the keyboard, its WebGL
+   surface and laser-specific states use --accent. */
 :root[data-theme='laser'] {
   --accent: var(--laser);
-  --accent-2: var(--pink);
-  --accent-rgb: 255 23 79;
-  --accent-2-rgb: 255 61 129;
+  --accent-2: #ff7a93;
+  --accent-rgb: 255 54 93;
+  --accent-2-rgb: 255 122 147;
 }
 
 :root[data-theme='holo'] {
-  --accent: var(--cyan);
-  --accent-2: var(--laser);
-  --accent-rgb: 0 229 255;
-  --accent-2-rgb: 255 23 79;
+  --accent: var(--brand);
+  --accent-2: #8af5cb;
+  --accent-rgb: 50 230 160;
+  --accent-2-rgb: 138 245 203;
 }

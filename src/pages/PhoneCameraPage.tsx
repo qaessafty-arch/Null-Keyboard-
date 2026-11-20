@@ -5,6 +5,7 @@ import { useRoute } from '@/app/Router';
 import { Logo } from '@/components/common/Logo';
 import { Button, Segmented, StatusDot, type DotTone } from '@/components/common/Controls';
 import { CameraPreview } from '@/components/camera/CameraPreview';
+import { FingerprintMark } from '@/brand/FingerprintMark';
 import '@/styles/phone.css';
 
 const STATE_TEXT: Record<PhoneSnapshot['state'], [string, DotTone]> = {
@@ -42,7 +43,7 @@ export function PhoneCameraPage() {
     <div className="phone">
       <header className="phone__head">
         <Logo />
-        <span className="eyebrow">Camera</span>
+        <span className="phone__role">Vision sensor</span>
       </header>
 
       {!window.isSecureContext && (
@@ -52,14 +53,23 @@ export function PhoneCameraPage() {
         </div>
       )}
 
-      <div className="phone__status" data-testid="phone-state" data-state={snap.state}>
-        <StatusDot tone={tone} pulse={tone === 'warn'} />
-        <span>{text}</span>
-        {snap.state === 'streaming' && <span className="live-badge">● LIVE</span>}
-      </div>
-      {snap.message && <p className="phone__msg">{snap.message}</p>}
-
-      <CameraPreview stream={snap.stream} className="camview--phone" label="Your camera" />
+      <section className="phone__card">
+        <div className="phone__status" data-testid="phone-state" data-state={snap.state}>
+          <FingerprintMark
+            size={28}
+            state={snap.state === 'streaming' ? 'active' : ['connecting', 'waiting-camera', 'reconnecting'].includes(snap.state) ? 'scanning' : 'idle'}
+          />
+          <div className="phone__status-text">
+            <span className="phone__status-line">
+              <StatusDot tone={tone} pulse={tone === 'warn'} />
+              {text}
+            </span>
+            {snap.message && <p className="phone__msg">{snap.message}</p>}
+          </div>
+          {snap.state === 'streaming' && <span className="live-badge">LIVE</span>}
+        </div>
+        <CameraPreview stream={snap.stream} className="camview--phone" label="Your camera" />
+      </section>
 
       {!running ? (
         <form

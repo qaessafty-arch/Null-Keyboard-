@@ -46,7 +46,7 @@ export function SettingsPage() {
         <section className="panel settings" aria-label="General settings">
           <SelectField<InputMode>
             label="Default mode"
-            hint="Mode selected when NEO TYPE opens."
+            hint="Mode selected when NULL-TECH opens."
             value={s.general.defaultMode}
             onChange={(v) => s.update('general', { defaultMode: v })}
             options={[
@@ -60,7 +60,7 @@ export function SettingsPage() {
             onChange={(v) => s.update('general', { theme: v })}
             options={[
               { value: 'laser', label: 'Laser (red)' },
-              { value: 'holo', label: 'Holo (cyan + red)' },
+              { value: 'holo', label: 'Signal (green)' },
             ]}
           />
           <SelectField
@@ -332,7 +332,7 @@ export function SettingsPage() {
             <li>The camera is requested only when you start Air Mode pairing — never on page load.</li>
             <li>Video is streamed directly from your phone to your Surface (peer-to-peer WebRTC on your network).</li>
             <li>Frames are processed on the Surface in the browser. Nothing is recorded or stored by default.</li>
-            <li>No camera footage is ever sent to a cloud or AI service. NEO TYPE uses no API keys.</li>
+            <li>No camera footage is ever sent to a cloud or AI service. NULL-TECH uses no API keys.</li>
             <li>A camera-active indicator is shown whenever a stream is live, with a disconnect button.</li>
             <li>Camera tracks are stopped when the session ends or you leave Air Mode.</li>
             <li>The signaling server only relays connection setup messages (no video) and validates every message.</li>

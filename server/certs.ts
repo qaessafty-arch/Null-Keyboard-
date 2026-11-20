@@ -41,7 +41,7 @@ export async function loadOrCreateCert(dir = join(process.cwd(), 'certs')): Prom
 
   const { generate } = await import('selfsigned');
   const notAfter = new Date(Date.now() + 365 * 86_400_000);
-  const pems = await generate([{ name: 'commonName', value: 'NEO TYPE local' }], {
+  const pems = await generate([{ name: 'commonName', value: 'NULL-TECH local' }], {
     keySize: 2048,
     algorithm: 'sha256',
     notAfterDate: notAfter,

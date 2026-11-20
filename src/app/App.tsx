@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { useRoute } from './Router';
-import { TopBar } from '@/components/dashboard/TopBar';
+import { TabBar, TopBar } from '@/components/dashboard/TopBar';
 import { StatusBar } from '@/components/dashboard/StatusBar';
 import { Toasts } from '@/components/common/Toasts';
 import { HomePage } from '@/pages/HomePage';
@@ -14,6 +14,7 @@ import { PhoneCameraPage } from '@/pages/PhoneCameraPage';
 import { connectKeyboardConsumers } from '@/engine/input/keyboard';
 import { startLongTaskObserver } from '@/engine/performance/metrics';
 import { startAutoQuality } from '@/engine/performance/autoQuality';
+import { startHistory } from '@/engine/performance/history';
 import { startDraftAutosave } from '@/features/text-output/draft';
 import { useSettings } from '@/stores/settingsStore';
 import { hostLink } from '@/communication/camera-connection/HostLink';
@@ -58,6 +59,7 @@ export function App() {
 
   useEffect(() => connectKeyboardConsumers(), []);
   useEffect(() => startLongTaskObserver(), []);
+  useEffect(() => (path === '/camera' ? undefined : startHistory()), [path === '/camera']); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => (path === '/camera' ? undefined : startAutoQuality()), [path === '/camera']); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (path !== '/camera') {
@@ -93,6 +95,7 @@ export function App() {
         {renderRoute(path)}
       </main>
       <StatusBar />
+      <TabBar />
       <Toasts />
     </div>
   );

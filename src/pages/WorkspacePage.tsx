@@ -5,10 +5,10 @@ import { AirModePanel } from '@/components/dashboard/AirModePanel';
 import { ModifierReadout } from '@/components/dashboard/ModifierReadout';
 import { Segmented } from '@/components/common/Controls';
 import { useAppStore } from '@/stores/appStore';
-import { keyboardEngine } from '@/engine/input/keyboard';
 import type { InputMode } from '@/stores/settingsStore';
-import { navigate } from '@/app/Router';
+import { switchInputMode } from '@/app/actions';
 import { useAirMode } from '@/hooks/useAirMode';
+import { InteractionStatus } from '@/components/dashboard/InteractionStatus';
 
 export function WorkspacePage({ forceMode }: { forceMode?: InputMode }) {
   const mode = useAppStore((s) => s.mode);
@@ -19,12 +19,7 @@ export function WorkspacePage({ forceMode }: { forceMode?: InputMode }) {
     if (forceMode && forceMode !== useAppStore.getState().mode) setMode(forceMode);
   }, [forceMode, setMode]);
 
-  const switchMode = (m: InputMode) => {
-    // Never carry a held key across a mode switch. Text is untouched.
-    keyboardEngine.releaseAll('reset');
-    setMode(m);
-    navigate(`/${m}`);
-  };
+  const switchMode = (m: InputMode) => switchInputMode(m);
 
   return (
     <div className={`workspace workspace--${mode}`}>
@@ -39,6 +34,7 @@ export function WorkspacePage({ forceMode }: { forceMode?: InputMode }) {
             { value: 'air', label: 'Air Mode', icon: 'camera' },
           ]}
         />
+        <InteractionStatus />
         <ModifierReadout />
       </div>
 

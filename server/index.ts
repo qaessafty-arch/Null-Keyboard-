@@ -1,5 +1,5 @@
 /**
- * NEO TYPE production server: serves the built app (dist/) and the signaling
+ * NULL-TECH production server: serves the built app (dist/) and the signaling
  * endpoint over HTTPS on your LAN so a phone can open the camera page.
  *
  *   npm start                 build + serve on https://<this-pc>:8443
@@ -105,7 +105,7 @@ async function main() {
   });
   server.listen(PORT, HOST, () => {
     const proto = USE_HTTP ? 'http' : 'https';
-    console.log(`\n  NEO TYPE is running\n`);
+    console.log(`\n  NULL-TECH is running\n`);
     console.log(`  On this PC:   ${proto}://localhost:${PORT}`);
     for (const url of lanUrls(server, !USE_HTTP)) console.log(`  On the phone: ${url}`);
     if (certKind === 'self-signed') {

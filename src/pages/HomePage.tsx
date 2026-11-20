@@ -6,6 +6,7 @@ import { useAppStore } from '@/stores/appStore';
 import { useSettings } from '@/stores/settingsStore';
 import { QUALITY_PROFILES } from '@/engine/performance/quality';
 import { useCalibration } from '@/engine/calibration/profile';
+import { FingerprintMark } from '@/brand/FingerprintMark';
 
 const HeroScene = lazy(() => import('@/rendering/three/HeroScene').then((m) => ({ default: m.HeroScene })));
 
@@ -36,13 +37,15 @@ export function HomePage() {
         </Suspense>
       )}
       <div className="home__content">
-        <p className="eyebrow home__eyebrow">Laser-holographic input system</p>
+        <p className="eyebrow home__eyebrow">
+          <FingerprintMark size={16} /> NULL-TECH · Beyond the interface
+        </p>
         <h1 className="home__title">
           Type on <span className="home__title-accent">light</span>.
         </h1>
         <p className="home__lead">
-          NEO TYPE is a virtual keyboard with two inputs and one engine: touch the screen, or type in the air above your desk
-          while your phone's camera watches your hands.
+          A laser keyboard with two ways in: touch the screen, or type in the air above your desk while your phone’s camera
+          reads your hands. One precise engine underneath.
         </p>
 
         <div className="home__modes">
@@ -71,10 +74,10 @@ export function HomePage() {
           </button>
         </div>
 
-        <ul className="home__facts mono">
-          <li>No cloud. No API keys.</li>
-          <li>Camera frames never leave your devices.</li>
-          <li>Built for Surface Pro 7 + any modern phone.</li>
+        <ul className="home__facts">
+          <li>On-device vision</li>
+          <li>Local network only</li>
+          <li>No accounts, no cloud</li>
         </ul>
       </div>
     </div>

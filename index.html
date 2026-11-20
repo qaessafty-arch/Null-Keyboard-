@@ -3,23 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#080A12" />
+    <meta name="theme-color" content="#090B10" />
     <meta name="color-scheme" content="dark" />
-    <meta name="description" content="NEO TYPE — dual-input laser-holographic virtual keyboard (touch + air)." />
-    <link rel="icon" type="image/svg+xml" href="/icons/neo-type.svg" />
-    <title>NEO TYPE</title>
+    <meta name="description" content="NULL-TECH — spatial input: a laser keyboard you can touch or type on in the air." />
+    <link rel="icon" type="image/svg+xml" href="/icons/null-tech.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <title>NULL-TECH</title>
     <script>
-      // Apply the saved theme before first paint to avoid a flash.
+      // Apply the saved keyboard theme before first paint.
       try {
         var s = JSON.parse(localStorage.getItem('neo-type:settings') || 'null');
         var t = s && s.state && s.state.general && s.state.general.theme;
         if (t === 'laser' || t === 'holo') document.documentElement.dataset.theme = t;
       } catch (e) {}
     </script>
+    <style>
+      /* Boot splash: visible only until the app has mounted. */
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        background: #090b10;
+        transition: opacity 360ms cubic-bezier(0.2, 0.8, 0.2, 1), visibility 360ms;
+      }
+      #boot.boot--done {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none; /* never swallow the first tap while fading */
+      }
+      .boot__inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        font: 600 14px/1 -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
+        letter-spacing: 0.32em;
+        color: #9299a8;
+      }
+      .boot__mark {
+        position: relative;
+        width: 72px;
+        height: 72px;
+        overflow: hidden;
+        border-radius: 16px;
+      }
+      .boot__mark img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .boot__mark::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 26px;
+        background: linear-gradient(180deg, transparent, rgba(50, 230, 160, 0.35), transparent);
+        animation: boot-scan 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+      }
+      @keyframes boot-scan {
+        from { transform: translateY(-26px); }
+        to { transform: translateY(72px); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot__mark::after { animation: none; display: none; }
+      }
+    </style>
   </head>
   <body>
+    <div id="boot" aria-hidden="true">
+      <div class="boot__inner">
+        <div class="boot__mark"><img src="/icons/null-tech.svg" alt="" /></div>
+        <span>NULL-TECH</span>
+      </div>
+    </div>
     <div id="root"></div>
-    <noscript>NEO TYPE needs JavaScript.</noscript>
+    <noscript>NULL-TECH needs JavaScript.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-# NEO TYPE — User guide
+# NULL-TECH — User guide
 
 ## Everyday use
 
@@ -74,4 +74,4 @@ All settings stay on this device. **Reset all settings** doesn't touch your text
 | Presses aren't recognised | Raise the sensitivity, tilt the phone more to the side, recalibrate, or use dwell |
 | Hands are labelled the wrong way | Labels are only for display; typing uses stable per-hand IDs. Mirrored preview only flips the video you see |
 | FPS drops on the Surface | Use Balanced or Low quality, a 15–24 Hz tracking rate and 720p, plug in the charger, and close other heavy tabs |
-| Can NEO TYPE type into Word or another app? | Not directly; browsers can't send keystrokes to other apps. Use Copy, then paste (Ctrl+V) |
+| Can NULL-TECH type into Word or another app? | Not directly; browsers can't send keystrokes to other apps. Use Copy, then paste (Ctrl+V) |

@@ -1,0 +1,59 @@
+.fp {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+.fp__ridges {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  transition: stroke 400ms var(--ease-standard, ease);
+}
+.fp__core {
+  fill: var(--brand, #32e6a0);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* scanning: a soft band sweeps top → bottom and back, lighting the ridges */
+.fp--scanning .fp__ridges:not(.fp__ridges--lit) {
+  opacity: 0.45;
+}
+.fp__ridges--lit {
+  stroke: var(--brand, #32e6a0);
+}
+.fp__band {
+  animation: fp-scan 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+@keyframes fp-scan {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(62px);
+  }
+}
+
+/* active: the core breathes */
+.fp--active .fp__core {
+  animation: fp-breathe 2.4s ease-in-out infinite;
+}
+@keyframes fp-breathe {
+  50% {
+    transform: scale(1.6);
+    opacity: 0.7;
+  }
+}
+
+/* success: ridges resolve to brand green */
+.fp--success .fp__ridges {
+  stroke: var(--brand, #32e6a0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp__band,
+  .fp--active .fp__core {
+    animation: none;
+  }
+}

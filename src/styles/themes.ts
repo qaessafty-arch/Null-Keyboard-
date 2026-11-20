@@ -12,11 +12,11 @@ const hex = (h: string): [number, number, number] => {
 };
 
 export const THEME_GL: Record<ThemeId, ThemeGl> = {
-  laser: { primary: hex('#FF174F'), secondary: hex('#FF3D81') },
-  holo: { primary: hex('#00E5FF'), secondary: hex('#FF174F') },
+  laser: { primary: hex('#FF365D'), secondary: hex('#FF7A93') },
+  holo: { primary: hex('#32E6A0'), secondary: hex('#8AF5CB') },
 };
 
 export const THEME_NAMES: Record<ThemeId, string> = {
   laser: 'Laser',
-  holo: 'Holo',
+  holo: 'Signal',
 };

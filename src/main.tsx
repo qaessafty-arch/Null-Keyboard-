@@ -13,3 +13,11 @@ createRoot(root).render(
     <App />
   </StrictMode>,
 );
+
+// Hand over from the boot splash once the first frame has rendered.
+requestAnimationFrame(() => {
+  const boot = document.getElementById('boot');
+  if (!boot) return;
+  boot.classList.add('boot--done');
+  setTimeout(() => boot.remove(), 500);
+});

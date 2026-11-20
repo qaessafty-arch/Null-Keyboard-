@@ -1,4 +1,4 @@
-import { Button, Slider, StatusDot, type DotTone } from '@/components/common/Controls';
+import { Button, Segmented, Slider, StatusDot, type DotTone } from '@/components/common/Controls';
 import { navigate } from '@/app/Router';
 import { useLinkStore } from '@/stores/linkStore';
 import { useTrackingStore } from '@/stores/trackingStore';
@@ -22,6 +22,7 @@ export function AirModePanel() {
   const showPreview = useSettings((s) => s.air.showPreview);
   const mirrored = useSettings((s) => s.air.mirrored);
   const update = useSettings((s) => s.update);
+  const pressMethod = useSettings((s) => s.air.pressMethod);
   const level = calibrationLevel(profile);
   const live = link === 'connected' && !!stream;
 
@@ -109,8 +110,21 @@ export function AirModePanel() {
         </div>
       )}
 
-      {air.active && (
-        <Slider label="Sensitivity" value={sensitivity} min={0} max={100} onChange={(v) => update('air', { sensitivity: v })} />
+      {level !== 'none' && (
+        <div className="airpanel__section">
+          <span className="airpanel__label">Press method</span>
+          <Segmented<'auto' | 'motion' | 'dwell'>
+            label="Press method"
+            value={pressMethod}
+            onChange={(v) => update('air', { pressMethod: v })}
+            options={[
+              { value: 'auto', label: 'Auto' },
+              { value: 'motion', label: 'Tap', disabled: level !== 'full' },
+              { value: 'dwell', label: 'Dwell' },
+            ]}
+          />
+          <Slider label="Sensitivity" value={sensitivity} min={0} max={100} onChange={(v) => update('air', { sensitivity: v })} />
+        </div>
       )}
 
       <div className="airpanel__actions">

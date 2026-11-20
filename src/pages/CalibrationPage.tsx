@@ -9,8 +9,7 @@ import { useHandTracking } from '@/hooks/useHandTracking';
 import { useAirMode } from '@/hooks/useAirMode';
 import { handTracker } from '@/features/hand-tracking/HandTracker';
 import { FINGERS, type TrackedHand } from '@/features/hand-tracking/types';
-import { CameraPreview } from '@/components/camera/CameraPreview';
-import { LandmarkOverlay, type OverlayExtras } from '@/components/camera/LandmarkOverlay';
+import { type OverlayExtras } from '@/components/camera/LandmarkOverlay';
 import { TrackingSummary } from '@/components/camera/TrackingSummary';
 import { CornerEditor } from '@/components/calibration/CornerEditor';
 import { VirtualKeyboard } from '@/components/keyboard/VirtualKeyboard';
@@ -37,6 +36,9 @@ import {
 import { handScale } from '@/features/gesture-recognition/features';
 import { calibrationLevel, useCalibration, type CalibrationProfile } from '@/engine/calibration/profile';
 import { notify } from '@/stores/noticeStore';
+import { FingerprintMark } from '@/brand/FingerprintMark';
+import { CameraStage } from '@/components/camera/CameraStage';
+import '@/styles/calibrate.css';
 
 const STEPS = ['Camera position', 'Keyboard area', 'Resting hands', 'Press calibration', 'Test'] as const;
 const PROMPTS = ['KeyF', 'KeyJ', 'KeyD', 'KeyK', 'Space', 'KeyS', 'KeyL', 'KeyG', 'KeyH', 'Space'];
@@ -113,9 +115,23 @@ export function CalibrationPage() {
   const extras: OverlayExtras = useMemo(
     () => ({
       draw: (ctx, toPx) => {
-        if (!corners || step < 1) return;
         const css = getComputedStyle(document.documentElement);
-        const accent = css.getPropertyValue('--accent').trim() || '#ff174f';
+        const brand = css.getPropertyValue('--brand').trim() || '#32e6a0';
+        if (step === 0) {
+          // Hand positioning guide: the zone both hands should rest in.
+          const [x0, y0] = toPx(0.08, 0.14);
+          const [x1, y1] = toPx(0.92, 0.94);
+          ctx.save();
+          ctx.setLineDash([6, 6]);
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+          ctx.beginPath();
+          ctx.roundRect(x0, y0, x1 - x0, y1 - y0, 18);
+          ctx.stroke();
+          ctx.restore();
+          return;
+        }
+        if (!corners) return;
         const poly = (pts: Point2[]) => {
           ctx.beginPath();
           pts.forEach((p, i) => {
@@ -126,14 +142,14 @@ export function CalibrationPage() {
           ctx.closePath();
         };
         ctx.lineWidth = 2;
-        ctx.strokeStyle = accent;
-        ctx.fillStyle = 'rgba(255,23,79,0.08)';
+        ctx.strokeStyle = brand;
+        ctx.fillStyle = 'rgba(50,230,160,0.07)';
         poly(corners);
         ctx.fill();
         ctx.stroke();
         if (!Hinv) return;
         ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
         for (const r of geometry.rects) {
           poly(
             [
@@ -153,9 +169,14 @@ export function CalibrationPage() {
   if (!live) {
     return (
       <div className="page">
+        <header className="page__head calib__header">
+          <FingerprintMark size={44} />
+          <div>
+            <p className="eyebrow">Air Mode</p>
+            <h1>Calibration</h1>
+          </div>
+        </header>
         <header className="page__head">
-          <p className="eyebrow">Air Mode · Step 2</p>
-          <h1>Calibration</h1>
           <p className="muted page__lead">
             Calibration needs the live phone camera. Connect your phone first.
             {existing && ' A saved calibration exists on this device and will be used for air typing.'}
@@ -194,27 +215,37 @@ export function CalibrationPage() {
 
   return (
     <div className="page page--wide calib">
-      <header className="page__head">
-        <p className="eyebrow">Air Mode · Calibration</p>
-        <h1 data-testid="calib-title">
-          {step + 1}. {STEPS[step]}
-        </h1>
+      <header className="calib__header">
+        <FingerprintMark
+          size={48}
+          state={step === 4 ? 'success' : tracking === 'running' && hands.length > 0 ? 'active' : 'scanning'}
+          title="Calibration status"
+        />
+        <div>
+          <p className="eyebrow">Calibration · step {step + 1} of {STEPS.length}</p>
+          <h1 data-testid="calib-title">{STEPS[step]}</h1>
+        </div>
       </header>
 
-      <ol className="calib__steps" aria-label="Progress">
-        {STEPS.map((s, i) => (
-          <li key={s} className={i === step ? 'is-current' : i < step ? 'is-done' : ''}>
-            <span className="mono">{i < step ? '✓' : i + 1}</span> {s}
-          </li>
-        ))}
-      </ol>
+      <div className="calib__progress">
+        <div className="calib__bar" role="progressbar" aria-valuenow={step} aria-valuemin={0} aria-valuemax={STEPS.length - 1}>
+          <span style={{ width: `${(step / (STEPS.length - 1)) * 100}%` }} />
+        </div>
+        <ol className="calib__steps" aria-label="Progress">
+          {STEPS.map((s, i) => (
+            <li key={s} className={i === step ? 'is-current' : i < step ? 'is-done' : ''}>
+              <span className="mono">{i < step ? '✓' : i + 1}</span> {s}
+            </li>
+          ))}
+        </ol>
+      </div>
 
       <div className="calib__body">
         <div className="calib__view">
-          <CameraPreview stream={stream} className="camview--calib" onVideo={setVideo}>
-            <LandmarkOverlay extras={extras} />
+          <CameraStage stream={stream} phase="live" extras={extras} onVideo={setVideo} meta={`${vw}×${vh}`}>
             {step === 1 && corners && <CornerEditor corners={corners} onChange={setCorners} videoWidth={vw} videoHeight={vh} />}
-          </CameraPreview>
+          </CameraStage>
+          <DetectionFeedback hands={hands} luma={luma} tracking={tracking} complete={step === 4} />
           <TrackingSummary />
         </div>
 
@@ -255,6 +286,7 @@ export function CalibrationPage() {
               aspect={aspect}
               neutral={rest.neutral}
               noise={rest.noise}
+              restSamples={rest.samples}
               H={H}
               presses={presses}
               setPresses={setPresses}
@@ -505,6 +537,7 @@ function PressStep({
   aspect,
   neutral,
   noise,
+  restSamples,
   H,
   presses,
   setPresses,
@@ -514,6 +547,7 @@ function PressStep({
   aspect: number;
   neutral: Neutral;
   noise: Noise;
+  restSamples: RestSample;
   H: Mat3;
   presses: PressSample[];
   setPresses: (fn: (p: PressSample[]) => PressSample[]) => void;
@@ -538,12 +572,12 @@ function PressStep({
   }, [neutral, threshold, aspect, H, setPresses]);
 
   const enough = presses.length >= MIN_PRESSES;
-  const summary = enough ? summarizePresses(presses, {}, neutral) : null;
+  const summary = presses.length >= 3 ? summarizePresses(presses, restSamples, neutral) : null;
 
   return (
     <>
       <p className="muted">
-        Tap each key the way you would on a real keyboard: a clear downward tap, then lift. NEO TYPE learns how your fingertips move when
+        Tap each key the way you would on a real keyboard: a clear downward tap, then lift. NULL-TECH learns how your fingertips move when
         pressing, as seen from this camera angle.
       </p>
       <div className="calib__target" data-testid="press-target">
@@ -558,10 +592,20 @@ function PressStep({
         ))}
       </div>
       {summary && (
-        <p className="field__hint mono">
-          press depth {summary.magnitude.toFixed(2)} · direction ({summary.direction.map((d) => d.toFixed(2)).join(', ')})
-          {summary.accuracy !== null && ` · ${(summary.accuracy * 100).toFixed(0)}% on target`}
-        </p>
+        <div className="gauges" data-testid="press-gauges">
+          <Gauge
+            value={summary.accuracy ?? 0}
+            label="On target"
+            text={summary.accuracy === null ? '—' : `${Math.round(summary.accuracy * 100)}%`}
+            grade={summary.accuracy === null ? 'none' : summary.accuracy >= 0.85 ? 'excellent' : summary.accuracy >= 0.6 ? 'good' : 'warn'}
+          />
+          <Gauge
+            value={Math.min(1, summary.separation / 8)}
+            label="Press vs jitter"
+            text={`${summary.separation.toFixed(1)}×`}
+            grade={summary.separation >= 6 ? 'excellent' : summary.separation >= 4 ? 'good' : summary.separation >= 2.5 ? 'warn' : 'crit'}
+          />
+        </div>
       )}
       <p className="field__hint">
         Presses not being picked up from this camera angle? Use <strong>dwell</strong> instead: hold an index fingertip still on a key to
@@ -592,9 +636,13 @@ function TestStep({ onRestart }: { onRestart: () => void }) {
   const sep = profile?.press?.separation ?? null;
   return (
     <>
-      <p className="calib__ok" data-testid="calib-saved">
-        <Icon name="check" /> Calibration saved on this device ({level === 'full' ? 'motion presses' : 'dwell presses'}).
-      </p>
+      <div className="calib__success" data-testid="calib-saved">
+        <FingerprintMark size={40} state="success" />
+        <div>
+          <h2>Calibration complete</h2>
+          <p>Saved on this device · {level === 'full' ? 'motion presses' : 'dwell presses'}</p>
+        </div>
+      </div>
       {sep !== null && (
         <p className={sep >= 4 ? 'field__hint' : 'linkstate__error'}>
           Press/jitter separation {sep.toFixed(1)}×
@@ -620,5 +668,78 @@ function TestStep({ onRestart }: { onRestart: () => void }) {
         </Button>
       </div>
     </>
+  );
+}
+
+// ── Shared pieces ─────────────────────────────────────────────────────────
+
+type Grade = 'excellent' | 'good' | 'warn' | 'crit' | 'none';
+const GRADE_COLOR: Record<Grade, string> = {
+  excellent: 'var(--s-excellent)',
+  good: 'var(--s-good)',
+  warn: 'var(--s-warn)',
+  crit: 'var(--s-crit)',
+  none: 'var(--s-idle)',
+};
+
+function Gauge({ value, label, text, grade }: { value: number; label: string; text: string; grade: Grade }) {
+  const r = 17;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className="gauge">
+      <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+        <circle className="gauge__track" cx="22" cy="22" r={r} strokeWidth="4" />
+        <circle
+          className="gauge__arc"
+          cx="22"
+          cy="22"
+          r={r}
+          strokeWidth="4"
+          stroke={GRADE_COLOR[grade]}
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - Math.max(0, Math.min(1, value)))}
+          transform="rotate(-90 22 22)"
+        />
+      </svg>
+      <div>
+        <div className="gauge__v">{text}</div>
+        <div className="gauge__k">{label}</div>
+      </div>
+    </div>
+  );
+}
+
+/** Live, specific feedback about what the camera currently sees. */
+function DetectionFeedback({
+  hands,
+  luma,
+  tracking,
+  complete,
+}: {
+  hands: TrackedHand[];
+  luma: number | null;
+  tracking: string;
+  complete: boolean;
+}) {
+  const items: Array<{ tone: 'ok' | 'warn' | 'err'; text: string }> = [];
+  if (tracking !== 'running') items.push({ tone: 'warn', text: tracking === 'loading' ? 'Loading hand model' : 'Starting tracking' });
+  else if (hands.length === 0) items.push({ tone: 'err', text: 'No hand detected' });
+  else {
+    if (hands.some((h) => h.landmarks.some((p) => p.x < 0.02 || p.x > 0.98 || p.y < 0.02 || p.y > 0.98)))
+      items.push({ tone: 'warn', text: 'Fingers outside the frame' });
+    if (Math.min(...hands.map((h) => h.score)) < 0.75) items.push({ tone: 'warn', text: 'Low tracking confidence' });
+  }
+  if (luma !== null && luma < 45) items.push({ tone: 'warn', text: 'Lighting is insufficient' });
+  if (luma !== null && luma > 225) items.push({ tone: 'warn', text: 'Too much glare' });
+  if (!items.length) items.push({ tone: 'ok', text: complete ? 'Calibration complete' : `${hands.length} hand${hands.length > 1 ? 's' : ''} detected` });
+  return (
+    <div className="feedback" aria-live="polite" data-testid="detection-feedback">
+      {items.map((it) => (
+        <span key={it.text} className={`feedback__item feedback__item--${it.tone}`}>
+          <StatusDot tone={it.tone} />
+          {it.text}
+        </span>
+      ))}
+    </div>
   );
 }

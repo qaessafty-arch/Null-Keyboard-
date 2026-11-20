@@ -1,4 +1,4 @@
-# NEO TYPE — Known limitations, performance advice and roadmap
+# NULL-TECH — Known limitations, performance advice and roadmap
 
 This is the final limitations report for v1.0.0.
 
@@ -17,7 +17,7 @@ Expect to tune **sensitivity**, **activation threshold** and **debounce** on the
 
 ## 2. Fundamental limitations
 
-1. **One camera can't measure depth.** MediaPipe's `z` is a relative estimate from a single image. NEO TYPE doesn't treat it as depth. It learns, during calibration, how a press changes the fingertip's position relative to its knuckle (including `z`) from your camera angle, and compares that with your resting jitter. From straight above, a press barely changes what the camera sees; a camera looking from slightly in front works much better. When presses can't be told apart from jitter (the calibration reports the separation), use **dwell**.
+1. **One camera can't measure depth.** MediaPipe's `z` is a relative estimate from a single image. NULL-TECH doesn't treat it as depth. It learns, during calibration, how a press changes the fingertip's position relative to its knuckle (including `z`) from your camera angle, and compares that with your resting jitter. From straight above, a press barely changes what the camera sees; a camera looking from slightly in front works much better. When presses can't be told apart from jitter (the calibration reports the separation), use **dwell**.
 2. **Air typing is slower and less accurate than a real keyboard.** There is no tactile feedback, fingertips occlude each other, and tracking latency adds up: camera → Wi-Fi → decode → inference. It suits short text, not long documents.
 3. **No system-wide typing.** A web page can't send keystrokes to other Windows apps. Use Copy or TXT. The engine emits standard `KeyboardInputEvent`s, so a native companion app (for example a small Tauri or Win32 helper on a local WebSocket) could add this later. See the roadmap.
 4. **HTTPS on the LAN.** Phones only allow the camera on secure pages. Without mkcert, a self-signed certificate means one browser warning per device. The PWA service worker also won't register on the phone in that case (the camera still works).
@@ -29,7 +29,7 @@ Expect to tune **sensitivity**, **activation threshold** and **debounce** on the
 
 - One layout (US QWERTY) and an English interface.
 - No long-press accent alternatives.
-- On-screen **Ctrl+V** needs clipboard-read permission. If the browser refuses, NEO TYPE says so; a physical keyboard or right-click › Paste still works.
+- On-screen **Ctrl+V** needs clipboard-read permission. If the browser refuses, NULL-TECH says so; a physical keyboard or right-click › Paste still works.
 - The Fn layer's F1–F12 have no effect in the built-in editor; they exist for a future native companion.
 - `navigator.deviceMemory` is capped by the browser, so System information shows "≥ 8 GB" on a 16 GB Surface.
 - `performance.memory` (JS heap) is only shown in Chromium browsers.

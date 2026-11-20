@@ -33,6 +33,7 @@ export function AboutPage() {
     <div className="page page--narrow">
       <header className="page__head about__head">
         <Logo />
+        <p className="about__tagline">Precision is beautiful. Complexity should disappear.</p>
         <p className="muted page__lead">
           Version {__APP_VERSION__}. Touch Mode and Air Mode (phone camera over WebRTC, MediaPipe hand tracking, calibration)
           share one keyboard engine.
@@ -56,7 +57,7 @@ export function AboutPage() {
       </section>
 
       <section className="panel">
-        <h2 className="panel__title">What NEO TYPE can and can't do</h2>
+        <h2 className="panel__title">What NULL-TECH can and can't do</h2>
         <ul className="tips">
           <li>Types into its own built-in editor. Copy the text or download it as TXT to use it elsewhere.</li>
           <li>

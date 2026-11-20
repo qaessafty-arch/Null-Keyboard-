@@ -53,6 +53,8 @@ test('phone pairs over WebRTC and streams HD video with real stats', async ({ co
   const errors = trackErrors(host);
   const phone = await pair(host, context);
   await expect(host.getByTestId('camera-live')).toBeVisible();
+  // Guided steps 1–4 complete from real link state.
+  await expect(host.locator('.guide__step.is-done')).toHaveCount(4, { timeout: 10_000 });
   await expect(host.getByTestId('link-fps')).not.toHaveText('—', { timeout: 10_000 });
   const size = await host.getByTestId('camera-video').evaluate((v: HTMLVideoElement) => `${v.videoWidth}x${v.videoHeight}`);
   expect(size).toBe('1280x720');

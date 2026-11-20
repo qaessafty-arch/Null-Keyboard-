@@ -13,14 +13,16 @@ body,
 body {
   margin: 0;
   background:
-    radial-gradient(1100px 520px at 50% -12%, rgb(var(--accent-rgb) / 0.09), transparent 70%),
-    radial-gradient(900px 500px at 110% 110%, rgb(var(--accent-2-rgb) / 0.05), transparent 70%),
-    var(--bg-0);
+    radial-gradient(1200px 600px at 50% -20%, rgb(255 255 255 / 0.045), transparent 70%),
+    linear-gradient(180deg, var(--bg-2), var(--bg) 40%);
+  background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: var(--fs-14);
   line-height: 1.5;
+  letter-spacing: -0.006em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   overflow: hidden;
 }
@@ -35,15 +37,20 @@ select,
 textarea {
   font: inherit;
   color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid rgb(var(--brand-rgb) / 0.8);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: rgb(var(--accent-rgb) / 0.35);
+  background: rgb(var(--brand-rgb) / 0.3);
   color: var(--text);
 }
 
@@ -52,7 +59,7 @@ h2,
 h3 {
   font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.022em;
   margin: 0;
 }
 
@@ -60,17 +67,20 @@ p {
   margin: 0;
 }
 
+code,
+kbd,
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
 }
 
+/* Small section label. Sentence case — no shouting. */
 .eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  font-size: var(--fs-12);
+  font-weight: 500;
   color: var(--text-2);
+  letter-spacing: 0;
 }
 
 .muted {
@@ -86,10 +96,9 @@ p {
   white-space: nowrap;
 }
 
-/* Thin, quiet scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
+  scrollbar-color: rgb(255 255 255 / 0.14) transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {

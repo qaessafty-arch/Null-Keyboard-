@@ -1,8 +1,8 @@
 {
   "name": "neo-type",
   "private": true,
-  "version": "1.0.0",
-  "description": "NEO TYPE \u2014 dual-input (touch + air) laser-holographic virtual keyboard",
+  "version": "1.1.0",
+  "description": "NULL-TECH \u2014 spatial input: a laser keyboard you can touch or type on in the air",
   "type": "module",
   "engines": {
     "node": ">=22.18"
