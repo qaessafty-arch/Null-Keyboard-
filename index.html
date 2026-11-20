@@ -15,6 +15,9 @@
         var s = JSON.parse(localStorage.getItem('neo-type:settings') || 'null');
         var t = s && s.state && s.state.general && s.state.general.theme;
         if (t === 'laser' || t === 'holo') document.documentElement.dataset.theme = t;
+        var a = (s && s.state && s.state.general && s.state.general.appearance) || 'system';
+        if (a === 'system') a = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.appearance = a;
       } catch (e) {}
     </script>
     <style>
@@ -26,8 +29,11 @@
         display: grid;
         place-items: center;
         background: #090b10;
+        color-scheme: dark;
         transition: opacity 360ms cubic-bezier(0.2, 0.8, 0.2, 1), visibility 360ms;
       }
+      html[data-appearance='light'] #boot { background: #eff0f4; }
+      html[data-appearance='light'] .boot__inner { color: #6b6c74; }
       #boot.boot--done {
         opacity: 0;
         visibility: hidden;

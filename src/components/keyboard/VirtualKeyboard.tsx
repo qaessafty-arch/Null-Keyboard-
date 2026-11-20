@@ -38,7 +38,7 @@ export function VirtualKeyboard({ interactive = true, showAirTips = false }: Pro
   } as CSSProperties;
 
   return (
-    <div className="kb-wrap" data-orientation={touch.orientation}>
+    <div className="kb-wrap appearance-dark" data-orientation={touch.orientation}>
       <div
         ref={ref}
         className={`kb${touch.visualFeedback ? '' : ' kb--no-feedback'}${interactive ? '' : ' kb--passive'}`}

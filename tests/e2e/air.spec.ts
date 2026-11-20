@@ -147,3 +147,62 @@ test('calibration (dwell) → air typing goes through the shared engine as AIR i
   await expect(host.getByText(/dwell only/)).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('camera window: docks without covering text, floats, snaps to corners, re-docks, closes', async ({ context }) => {
+  const host = await openHost(context);
+  const errors = trackErrors(host);
+  await pair(host, context);
+  await host.goto('/#/air');
+  const win = host.getByTestId('floating-camera');
+  await expect(win).toBeVisible();
+  await expect(win.getByTestId('camera-video')).toBeVisible();
+  // Truly floating layer: fixed to the viewport, never pushes the page into scrolling.
+  expect(await win.evaluate((el) => getComputedStyle(el).position)).toBe('fixed');
+  expect(await host.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight)).toBe(true);
+
+  // Rests in the editor's dock slot, and the text column reflows beside it.
+  await expect(win).toHaveAttribute('data-corner', 'dock');
+  const slot = host.locator('.editor__dock');
+  await expect
+    .poll(async () => {
+      const [a, b] = [await win.boundingBox(), await slot.boundingBox()];
+      return Math.abs(a!.x + a!.width - (b!.x + b!.width)) + Math.abs(a!.y - b!.y);
+    })
+    .toBeLessThan(3);
+  const pad = await host.getByTestId('editor').evaluate((el) => parseFloat(getComputedStyle(el).paddingRight));
+  expect(pad).toBeGreaterThan((await win.boundingBox())!.width);
+
+  // Enlarge lifts it out of the dock; minimise/restore keep working.
+  const w0 = (await win.boundingBox())!.width;
+  await win.getByRole('button', { name: 'Enlarge Camera' }).click();
+  await expect(win).toHaveAttribute('data-corner', 'tr');
+  await expect.poll(async () => (await win.boundingBox())!.width).toBeGreaterThan(w0 + 100);
+  await win.getByRole('button', { name: 'Minimise Camera' }).click();
+  await expect(win.locator('.fwin__body')).toHaveCount(0);
+  await win.getByRole('button', { name: 'Restore Camera' }).click();
+  await expect(win.locator('.fwin__body')).toHaveCount(1);
+  await win.getByRole('button', { name: 'Shrink Camera' }).click();
+
+  const dragTitleTo = async (x: number, y: number) => {
+    await host.waitForTimeout(500); // let the spring settle
+    const bar = (await win.locator('.fwin__title').boundingBox())!;
+    await host.mouse.move(bar.x + bar.width / 2, bar.y + bar.height / 2);
+    await host.mouse.down();
+    await host.mouse.move(x, y, { steps: 14 });
+    await host.mouse.up();
+  };
+  const vp = host.viewportSize()!;
+  await dragTitleTo(vp.width * 0.2, vp.height * 0.75);
+  await expect(win).toHaveAttribute('data-corner', 'bl');
+
+  // Drag back over the slot → re-docks.
+  const s = (await slot.boundingBox())!;
+  await dragTitleTo(s.x + s.width / 2, s.y + 20);
+  await expect(win).toHaveAttribute('data-corner', 'dock');
+
+  await win.getByRole('button', { name: 'Close Camera' }).click();
+  await expect(win).toHaveCount(0);
+  await expect(host.locator('.editor__dock')).toHaveCount(0);
+  await expect(host.getByRole('button', { name: 'Show camera' })).toBeVisible();
+  expect(errors).toEqual([]);
+});

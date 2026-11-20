@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Segmented, SelectField, Slider, Toggle } from '@/components/common/Controls';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { Icon } from '@/components/common/Icon';
-import { useSettings, type CameraResolution, type Orientation, type QualityMode, type ThemeId, type InputMode } from '@/stores/settingsStore';
+import { useSettings, type CameraResolution, type Orientation, type QualityMode, type ThemeId, type InputMode, type Appearance } from '@/stores/settingsStore';
 import { LAYOUTS } from '@/features/keyboard-engine/layouts/qwerty';
 import { useFullscreen } from '@/hooks/useFullscreen';
 import { notify } from '@/stores/noticeStore';
@@ -52,6 +52,17 @@ export function SettingsPage() {
             options={[
               { value: 'touch', label: 'Touch Mode' },
               { value: 'air', label: 'Air Mode' },
+            ]}
+          />
+          <SelectField<Appearance>
+            label="Appearance"
+            hint="Auto follows your system. The keyboard deck and camera views stay dark in both, like a display."
+            value={s.general.appearance}
+            onChange={(v) => s.update('general', { appearance: v })}
+            options={[
+              { value: 'system', label: 'Auto' },
+              { value: 'light', label: 'Light' },
+              { value: 'dark', label: 'Dark' },
             ]}
           />
           <SelectField<ThemeId>

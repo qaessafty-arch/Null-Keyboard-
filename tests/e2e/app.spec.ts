@@ -222,3 +222,41 @@ test('performance charts draw from real samples', async ({ page }) => {
   // No camera → network card says so instead of inventing numbers.
   await expect(page.locator('.pcard', { hasText: 'Network' })).toContainText('—');
 });
+
+test('Dynamic Island expands into controls and switches appearance (persisted)', async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto('/#/touch');
+  const island = page.getByTestId('dynamic-island');
+  await expect(island).toHaveAttribute('data-mode', 'compact');
+  await page.getByRole('button', { name: /System status: No phone linked/ }).click();
+  await expect(island).toHaveAttribute('data-mode', 'expanded');
+  const panel = page.getByRole('dialog', { name: 'System controls' });
+  // Honest state: no phone → offers Connect, never a fake camera.
+  await expect(panel).toContainText('No phone linked');
+
+  await panel.getByRole('radiogroup', { name: 'Appearance' }).getByRole('radio', { name: 'Light' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-appearance', 'light');
+  // The keyboard deck stays a dark device in light appearance.
+  const deckBg = await page.locator('.kb-wrap').evaluate((el) => getComputedStyle(el).getPropertyValue('--bg').trim());
+  expect(deckBg.toLowerCase()).not.toBe('#eff0f4');
+
+  await page.keyboard.press('Escape');
+  await expect(island).toHaveAttribute('data-mode', 'compact');
+
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-appearance', 'light');
+  await page.goto('/#/settings');
+  await page.getByLabel('Appearance').selectOption('dark');
+  await expect(page.locator('html')).toHaveAttribute('data-appearance', 'dark');
+  expect(errors).toEqual([]);
+});
+
+test('copy shows a success morph only when the clipboard write succeeds', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/#/touch');
+  await page.locator('[data-key="KeyA"]').click();
+  const copy = page.locator('.editor__tools .btn', { hasText: /^Copy$/ });
+  await copy.click();
+  await expect(page.locator('.editor__tools .btn--done')).toHaveText('Copied');
+  await expect(page.locator('.editor__tools .btn', { hasText: /^Copy$/ })).toBeVisible({ timeout: 3000 });
+});

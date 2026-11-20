@@ -1,4 +1,6 @@
 import { useId, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react';
+import { motion } from 'motion/react';
+import { spring } from '@/design/motion';
 import { Icon, type IconName } from './Icon';
 
 type Variant = 'primary' | 'ghost' | 'danger' | 'quiet';
@@ -35,6 +37,7 @@ interface SegmentedProps<T extends string> {
 }
 
 export function Segmented<T extends string>({ value, options, onChange, label, size = 'm' }: SegmentedProps<T>) {
+  const thumbId = useId();
   return (
     <div className={`segmented segmented--${size}`} role="radiogroup" aria-label={label}>
       {options.map((o) => (
@@ -47,6 +50,9 @@ export function Segmented<T extends string>({ value, options, onChange, label, s
           disabled={o.disabled}
           onClick={() => onChange(o.value)}
         >
+          {value === o.value && (
+            <motion.span className="segmented__thumb" layoutId={thumbId} transition={spring.snappy} aria-hidden="true" />
+          )}
           {o.icon && <Icon name={o.icon} />}
           <span>{o.label}</span>
         </button>

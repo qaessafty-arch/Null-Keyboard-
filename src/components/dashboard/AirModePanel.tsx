@@ -6,8 +6,8 @@ import { useSettings } from '@/stores/settingsStore';
 import { useAirStore } from '@/features/air-mode/airStore';
 import { calibrationLevel, useCalibration } from '@/engine/calibration/profile';
 import { hostLink } from '@/communication/camera-connection/HostLink';
-import { CameraPreview } from '@/components/camera/CameraPreview';
-import { LandmarkOverlay } from '@/components/camera/LandmarkOverlay';
+import { StateView } from '@/components/spatial/StateView';
+import { useCameraWindowOpen } from '@/components/camera/useCameraWindowOpen';
 import { CAMERA_LINK_LABEL, CAMERA_LINK_TONE } from './status';
 
 /** Air Mode pipeline status. Every row reflects a real, live state. */
@@ -20,10 +20,10 @@ export function AirModePanel() {
   const air = useAirStore();
   const sensitivity = useSettings((s) => s.air.sensitivity);
   const showPreview = useSettings((s) => s.air.showPreview);
-  const mirrored = useSettings((s) => s.air.mirrored);
   const update = useSettings((s) => s.update);
   const pressMethod = useSettings((s) => s.air.pressMethod);
   const level = calibrationLevel(profile);
+  const cameraDock = useCameraWindowOpen();
   const live = link === 'connected' && !!stream;
 
   const trackTone: DotTone =
@@ -81,11 +81,16 @@ export function AirModePanel() {
         )}
       </div>
 
-      {live && showPreview && (
-        <CameraPreview stream={stream} mirrored={mirrored} className="camview--air">
-          <LandmarkOverlay />
-        </CameraPreview>
+      {!live && (
+        <StateView
+          compact
+          state={link === 'reconnecting' ? 'connecting' : link === 'disconnected' ? 'disconnected' : 'idle'}
+          title={link === 'reconnecting' ? 'Reconnecting…' : 'No camera yet'}
+          body="Pair your phone to start air typing."
+        />
       )}
+
+      {cameraDock && <div className="airpanel__dock camera-dock" data-camera-dock aria-hidden="true" />}
 
       {tracking.lost && <p className="airpanel__warn">Tracking lost — bring your hands back into view.</p>}
 
@@ -141,8 +146,8 @@ export function AirModePanel() {
           {level === 'none' ? 'Calibrate' : 'Recalibrate'}
         </Button>
         {live && (
-          <Button variant="quiet" onClick={() => update('air', { showPreview: !showPreview })}>
-            {showPreview ? 'Hide video' : 'Show video'}
+          <Button variant="quiet" icon={showPreview ? 'eyeOff' : 'video'} onClick={() => update('air', { showPreview: !showPreview })}>
+            {showPreview ? 'Hide camera' : 'Show camera'}
           </Button>
         )}
       </div>

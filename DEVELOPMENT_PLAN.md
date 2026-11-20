@@ -172,6 +172,15 @@ composition roots and should not live inside reusable `components/`.
 - ✅ Workspace interaction capsule, Air inspector with press-method control; Home, Phone, Settings, About in the new language
 - Bugs found while verifying: the fading boot splash swallowed the first tap (now `pointer-events: none`); tablet nav overflow at 1024 px; overlay labels too small on smaller previews; nav mode radios clashed with the Settings tabs (now `aria-pressed` buttons)
 
+### v1.2 — Apple-inspired design system ✅
+- ✅ Light and dark appearance from one token set (Auto / Light / Dark), applied before first paint; keyboard deck and camera views stay dark; no hard-coded colours left in components
+- ✅ Liquid Glass materials in two tiers (blur only on floating layers), specular rim, sheen, pointer-tracked reflection; reduce-transparency and Low-quality fallbacks
+- ✅ Dynamic Island: compact / activity / expanded, context-aware labels, real-event activities, controls (phone, theme, appearance)
+- ✅ Motion (`motion/react`, exact version): spring presets, shared-layout thumbs (segmented, nav, tab bar, mode picker), route transitions, toasts; `reducedMotion="user"`
+- ✅ Spatial: camera window with window controls, drag, corner snap and a dock slot (editor / Air panel); ornaments; tilt cards; StateView family for idle / loading / connecting / calibrating / disconnected / success
+- ✅ Micro-interactions and context: copy success morph, focus mode while air typing, appearance in Settings
+- Bugs found while verifying: the materials layer's `position: relative` overrode the camera window's `position: fixed` (now zero-specificity `:where()`); the window opened at the video's intrinsic width and shrank (now starts at its size); the expanded island rendered under the camera window (nav above windows); the default window position covered the Air panel and the editor on phones (now docks into a reserved slot); the slot was measured mid page-transition (re-measured after it settles)
+
 ## 4. Verification log
 
 | Date | Stage | Check | Result |
@@ -188,6 +197,8 @@ composition roots and should not live inside reusable `components/`.
 | — | 3–5 | S25 Ultra over Wi-Fi, real hands, motion presses | ⬜ pending, needs hardware |
 | 2026-11-20 | v1.1 | `npm test` / `npm run test:e2e` after the redesign | ✅ 104/104 · 22/22 (adds splash, nav indicator, phone tab bar, real-data charts, guided steps) |
 | 2026-11-20 | v1.1 | Screenshot tour with the live pipeline: 1368×912, 1024×1366, 390×844 (all sections) | ✅ 0 console errors, no horizontal overflow |
+| 2026-11-20 | v1.2 | `npm test` / `npm run test:e2e` after the design-system pass | ✅ 104/104 · 25/25 (adds island + appearance, copy morph, camera window dock/float/snap) |
+| 2026-11-20 | v1.2 | Screenshot tour in dark and light with the live pipeline: 1368×912, 1024×1366, 390×844 | ✅ 0 console errors |
 
 ### Bugs found and fixed during verification
 - Page overflowed horizontally in portrait: the app grid's implicit column grew to the top bar's min-content. Fixed with `grid-template-columns: minmax(0, 1fr)`.

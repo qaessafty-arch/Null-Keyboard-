@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type ThemeId = 'laser' | 'holo';
+export type Appearance = 'system' | 'light' | 'dark';
 export type InputMode = 'touch' | 'air';
 export type QualityMode = 'high' | 'balanced' | 'low';
 export type CameraResolution = '480p' | '720p' | '1080p';
@@ -11,6 +12,8 @@ export interface Settings {
   general: {
     defaultMode: InputMode;
     theme: ThemeId;
+    /** Interface appearance. The keyboard deck and camera stay dark devices. */
+    appearance: Appearance;
     layout: string;
     language: 'en';
     sound: boolean;
@@ -59,7 +62,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  general: { defaultMode: 'touch', theme: 'laser', layout: 'qwerty-us', language: 'en', sound: true },
+  general: { defaultMode: 'touch', theme: 'laser', appearance: 'system', layout: 'qwerty-us', language: 'en', sound: true },
   air: {
     cameraFacing: 'environment',
     sensitivity: 50,

@@ -104,8 +104,8 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px) 0 0 / 40px 40px,
-    linear-gradient(90deg, rgb(255 255 255 / 0.025) 1px, transparent 1px) 0 0 / 40px 40px;
+    linear-gradient(var(--fill-1) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, var(--fill-1) 1px, transparent 1px) 0 0 / 40px 40px;
   mask-image: radial-gradient(70% 70% at 50% 50%, #000 30%, transparent 100%);
 }
 .stage__top {
@@ -140,7 +140,7 @@
   background: rgb(9 11 16 / 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgb(255 255 255 / 0.08);
+  border: 1px solid var(--fill-3);
   opacity: 0.9;
   transition: opacity var(--dur-1) var(--ease-standard);
 }
@@ -163,7 +163,7 @@
     color var(--dur-1) var(--ease-standard);
 }
 .stage__btn:hover {
-  background: rgb(255 255 255 / 0.1);
+  background: var(--fill-3);
   color: var(--text);
 }
 .stage__btn.is-on {
@@ -179,7 +179,7 @@
   background: rgb(9 11 16 / 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgb(255 255 255 / 0.08);
+  border: 1px solid var(--fill-3);
   max-width: max-content;
 }
 .stage__footer .tracksum__meta {
@@ -398,7 +398,7 @@
   line-height: 1.45;
 }
 .guide__step.is-current {
-  background: rgb(255 255 255 / 0.035);
+  background: var(--fill-1);
 }
 .guide__step.is-current .guide__icon {
   background: var(--surface-3);

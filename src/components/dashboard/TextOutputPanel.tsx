@@ -6,6 +6,7 @@ import { Button, IconButton } from '@/components/common/Controls';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { InputSourceIndicator } from './InputSourceIndicator';
 import { notify } from '@/stores/noticeStore';
+import { useCameraWindowOpen } from '@/components/camera/useCameraWindowOpen';
 
 /**
  * Built-in editor. The textarea is a view of the TextBuffer model:
@@ -20,6 +21,10 @@ export function TextOutputPanel() {
   const { apply, syncFromView, setSelection, undo, redo, clear, copy } = useTextStore.getState();
   const ref = useRef<HTMLTextAreaElement>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const cameraDock = useCameraWindowOpen();
+  const copiedTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(copiedTimer.current), []);
 
   // Push model selection into the view after every model change.
   useLayoutEffect(() => {
@@ -65,7 +70,7 @@ export function TextOutputPanel() {
   };
 
   return (
-    <section className="editor" aria-label="Text output">
+    <section className={`editor${cameraDock ? ' editor--docked' : ''}`} aria-label="Text output">
       <div className="editor__bar">
         <div className="editor__title">
           <span className="eyebrow">Output</span>
@@ -83,8 +88,20 @@ export function TextOutputPanel() {
             }}
           />
           <span className="editor__sep" />
-          <Button icon="copy" onClick={() => void copy()}>
-            Copy
+          <Button
+            icon={copied ? 'check' : 'copy'}
+            className={copied ? 'btn--done' : undefined}
+            aria-live="polite"
+            onClick={() =>
+              void copy().then((ok) => {
+                if (!ok) return;
+                setCopied(true);
+                window.clearTimeout(copiedTimer.current);
+                copiedTimer.current = window.setTimeout(() => setCopied(false), 1600);
+              })
+            }
+          >
+            {copied ? 'Copied' : 'Copy'}
           </Button>
           <Button
             icon="download"
@@ -102,27 +119,30 @@ export function TextOutputPanel() {
         </div>
       </div>
 
-      <textarea
-        ref={ref}
-        className="editor__text"
-        value={doc.text}
-        inputMode="none"
-        spellCheck={false}
-        autoCorrect="off"
-        autoCapitalize="off"
-        placeholder="Start typing on the laser keyboard…"
-        aria-label="Typed text"
-        data-testid="editor"
-        onChange={(e) => {
-          const [a, f] = readSelection(e.currentTarget);
-          syncFromView(e.currentTarget.value, a, f);
-        }}
-        onSelect={(e) => {
-          const [a, f] = readSelection(e.currentTarget);
-          setSelection(a, f);
-        }}
-        onKeyDown={onKeyDown}
-      />
+      <div className="editor__body">
+        <textarea
+          ref={ref}
+          className="editor__text"
+          value={doc.text}
+          inputMode="none"
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="off"
+          placeholder="Start typing on the laser keyboard…"
+          aria-label="Typed text"
+          data-testid="editor"
+          onChange={(e) => {
+            const [a, f] = readSelection(e.currentTarget);
+            syncFromView(e.currentTarget.value, a, f);
+          }}
+          onSelect={(e) => {
+            const [a, f] = readSelection(e.currentTarget);
+            setSelection(a, f);
+          }}
+          onKeyDown={onKeyDown}
+        />
+        {cameraDock && <div className="editor__dock camera-dock" data-camera-dock aria-hidden="true" />}
+      </div>
 
       <div className="editor__foot mono">
         <span data-testid="char-count">{stats.chars} chars</span>

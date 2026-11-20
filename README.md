@@ -152,7 +152,7 @@ docs/              USER_GUIDE.md, LIMITATIONS.md
 | --- | --- |
 | `npm run typecheck` | ✅ no errors |
 | `npm test`: 8 files, **104 tests** | ✅ all pass |
-| `npm run test:e2e`: **19 tests** (13 UI + 6 camera pipeline) | ✅ all pass |
+| `npm run test:e2e`: **25 tests** (18 UI + 7 camera pipeline) | ✅ all pass |
 | `npm run build` | ✅ app 374 KB JS (120 KB gzip); Three.js and the tracking worker in separate chunks |
 
 What the tests cover:
@@ -172,7 +172,9 @@ What the tests cover:
   - WebGL on/off;
   - measured metrics;
   - zero console errors on every screen;
-  - no portrait overflow.
+  - no portrait overflow;
+  - the Dynamic Island expands into honest controls and switches **light / dark** appearance (persisted; the keyboard deck stays dark);
+  - Copy shows its success morph only after a real clipboard write.
 - **Camera e2e tests:** Chromium's fake camera plays MediaPipe's own two-hand test photo, and the tests check:
   - pairing and a 1280×720 WebRTC stream;
   - a wrong code is rejected;
@@ -180,7 +182,8 @@ What the tests cover:
   - **Disconnect turns the phone camera off**;
   - MediaPipe detects **both hands at about 95 %** in the worker;
   - the calibration wizard completes and still fingertips **dwell-type real keys, reported as `AIR`**, through the shared engine;
-  - the calibration survives a reload.
+  - the calibration survives a reload;
+  - the **camera window** docks without covering text, floats, snaps to corners, re-docks and closes, without ever making the page scroll.
 - **Manual check:** the production `npm start` server ran the whole pipeline under its Content-Security-Policy, including GPU inference in the worker, with zero console errors.
 
 **Not verified here:**
@@ -195,17 +198,22 @@ NULL-TECH's interface follows one rule: *precision is beautiful; complexity shou
 | --- | --- |
 | Brand mark | A custom fingerprint: seven open loop ridges cut by a diagonal **∅** (null) slash, with a brand-green core. It comes from one pure function (`src/brand/fingerprint.ts`) that feeds the React component, favicon, PWA icons and boot splash (`node scripts/gen-brand.ts`). |
 | Where the mark appears | Logo, boot splash (scanning), Connect page states, calibration header (scanning → active → success), tracking indicator in the nav, a 2 % watermark behind the workspace, favicon. It is used sparingly on purpose. |
-| Colour | Graphite surfaces `#090B10 / #11141C / #191D27`, text `#F5F6FA / #9299A8`, borders `rgba(255,255,255,0.09)`. **Brand green `#32E6A0`** is for primary actions, completion and live tracking. **Laser red `#FF365D`** is only for the laser keyboard and live-camera states. Status scale: excellent / good / warning / critical. |
+| Colour | Graphite surfaces `#090B10 / #11141C / #191D27`, text `#F5F6FA / #9299A8`. **Brand green `#32E6A0`** is for primary actions, completion and live tracking. **Laser red `#FF365D`** is only for the laser keyboard and live-camera states. Status scale: excellent / good / warning / critical. |
+| Appearance | **Light and dark** from one token set (`src/styles/tokens.css`), chosen in Settings › General or the Dynamic Island: *Auto* (follows the system), *Light*, *Dark*. Applied before first paint, so there is no flash. The keyboard deck and camera views stay dark in both, like the display of a physical device (`.appearance-dark` scope). Components use tokens only, no hard-coded colours. |
+| Materials | **Liquid Glass**, in two tiers so the GPU stays free for the camera pipeline. *Floating layers* (navigation, Dynamic Island, camera window, ornaments, toasts, dialogs) get real backdrop blur + saturation, a 1 px specular rim that is brightest where light hits, a top sheen, and a reflection that follows the pointer (`useSpecular`). *In-flow surfaces* (panels, cards, the editor) get the same rim and sheen without blur. Falls back to solid surfaces under *reduce transparency* and Low quality (`src/styles/materials.css`). |
+| Dynamic Island | One black capsule in the navigation (`components/island/`) carries the live state of phone, camera, tracking and laser. *Compact:* context-aware label (e.g. `Pair XH8 K3B` while waiting, `Live · 2 hands`) plus status dots. *Activity:* morphs wider for real events only (phone connected / lost, hands found / lost, calibration saved, theme change). *Expanded:* tap for controls (connect / disconnect, camera and tracking stats, laser theme, appearance). Everything it shows comes from the live stores. |
+| Spatial elements | **Camera window** (`components/spatial/FloatingWindow.tsx`): window controls (close, minimise, enlarge), drag by the title bar, spring snap to the nearest corner. By default it rests in a **dock slot** the layout reserves for it (beside the text in the editor; in the Air panel on phones), so it never covers content until you drag it out. **Ornaments** are the floating control capsule above the workspace. **Tilt cards** on Home lean toward a mouse pointer on a spring (not under a finger or pen). **State views** (`StateView`) are one family of quiet states for idle, loading, connecting, calibrating, disconnected and success, built from the fingerprint mark and SVG rings. |
 | Type | SF Pro Display / Text, then Segoe UI Variable (native on the Surface), then Inter. SF Mono, JetBrains Mono or Cascadia for measurements. Sentence-case labels, no shouty tracking. |
 | Space and shape | 4 px grid; radii 6 / 8 / 12 / 16 / 22. |
-| Motion | 180 ms (controls), 260 ms (navigation, a light spring), 420 ms (page enter). Fingerprint scan and pulse only while something is actually happening. All motion respects *reduce motion*. |
+| Motion | **Motion** (`motion/react`) for layout morphs only: shared-layout thumbs for segmented controls, nav and tab bar; route transitions; toasts; the island; window drag and snap. Three spring presets in `src/design/motion.ts` (snappy, fluid, gentle). Press and hover feedback stay in CSS. Only transform and opacity animate, and per-frame camera drawing never goes through React. Everything respects *reduce motion* (`MotionConfig reducedMotion="user"`). |
+| Micro-interactions | Every control answers: spring thumbs on segmented controls, pressed states, focus rings, window-control glyphs on hover, Copy → *Copied ✓* only after a real clipboard write, and focus mode (while air typing, the navigation and status bar recede and the island stays bright). |
 | Icons | One custom line set (1.5 px stroke, 20 px grid) in `components/common/Icon.tsx`. No emoji, no mixed icon libraries. |
-| Tokens | `src/styles/tokens.css`. Components: `app.css`; page styles: `connect.css`, `calibrate.css`, `performance.css`, `phone.css`; keyboard: `components/keyboard/keyboard.css`. |
+| Tokens | `src/styles/tokens.css` (both appearances), `materials.css` (glass), `src/design/motion.ts` (springs). Components: `app.css`; page styles: `connect.css`, `calibrate.css`, `performance.css`, `phone.css`; keyboard: `components/keyboard/keyboard.css`; island and spatial styles live next to their components. |
 
 Responsive behaviour:
-- **Desktop and Surface:** floating glass navigation with a sliding active indicator and compact status indicators.
-- **Tablet:** the same navigation; fullscreen and laser move to Settings.
-- **Phones:** brand and status stay on top; the sections move to a bottom tab bar.
+- **Desktop and Surface:** floating glass navigation with a sliding active indicator and the Dynamic Island; the camera window docks beside the text.
+- **Tablet:** the same navigation; fullscreen moves to Settings; the editor and Air panel stack.
+- **Phones:** brand and island stay on top; the sections move to a floating bottom tab bar; the camera docks in the Air panel next to its actions.
 
 ## Docs
 

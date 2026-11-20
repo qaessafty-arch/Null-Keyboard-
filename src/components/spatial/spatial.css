@@ -1,0 +1,411 @@
+/* ── Spatial elements ──────────────────────────────────────────────────── */
+
+/* State view */
+.sview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 28px;
+  text-align: center;
+  color: var(--text-2);
+}
+.sview--compact {
+  gap: 12px;
+  padding: 16px;
+}
+.sview__orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+}
+.sview--compact .sview__orb {
+  width: 96px;
+  height: 96px;
+}
+.sview__orb .fp {
+  position: relative;
+  color: var(--text);
+}
+.sview__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  opacity: 0;
+}
+.sview__arc {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 60 300;
+  opacity: 0;
+  transform-origin: center;
+}
+.sview__text strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.015em;
+}
+.sview--compact .sview__text strong {
+  font-size: var(--fs-15);
+}
+.sview__text p {
+  margin-top: 4px;
+  max-width: 36ch;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+}
+.sview__action {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* connecting: rings radiate outward like a signal */
+.sview--connecting .sview__ring {
+  animation: sview-radiate 2.4s var(--ease-standard) infinite;
+}
+.sview--connecting .sview__ring--2 {
+  animation-delay: 0.8s;
+}
+.sview--connecting .sview__ring--3 {
+  animation-delay: 1.6s;
+}
+@keyframes sview-radiate {
+  0% {
+    transform: scale(0.45);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.05);
+    opacity: 0;
+  }
+}
+
+/* loading / calibrating: an arc orbits */
+.sview--loading .sview__arc,
+.sview--calibrating .sview__arc {
+  opacity: 1;
+  animation: sview-orbit 1.6s linear infinite;
+}
+@keyframes sview-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sview--loading .sview__ring--1,
+.sview--calibrating .sview__ring--1 {
+  opacity: 0.6;
+  transform: scale(0.94);
+}
+
+/* idle: two calm rings */
+.sview--idle .sview__ring--1 {
+  opacity: 0.55;
+  transform: scale(0.72);
+}
+.sview--idle .sview__ring--2 {
+  opacity: 0.3;
+  transform: scale(0.98);
+}
+
+/* disconnected: still, dimmed, broken outer ring */
+.sview--disconnected .sview__ring--1 {
+  opacity: 0.4;
+  transform: scale(0.72);
+}
+.sview--disconnected .sview__arc {
+  opacity: 0.5;
+  stroke: var(--s-warn);
+  stroke-dasharray: 300 52;
+}
+.sview--disconnected .fp {
+  opacity: 0.55;
+}
+
+/* success: rings settle in brand colour */
+.sview--success .sview__ring--1 {
+  opacity: 1;
+  border-color: rgb(var(--brand-rgb) / 0.45);
+  transform: scale(0.75);
+  animation: sview-settle 600ms var(--ease-spring);
+}
+.sview--success .sview__ring--2 {
+  opacity: 1;
+  border-color: rgb(var(--brand-rgb) / 0.2);
+}
+@keyframes sview-settle {
+  from {
+    transform: scale(0.55);
+    opacity: 0;
+  }
+}
+
+/* Floating window */
+.fwin {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  overflow: hidden;
+  touch-action: none;
+}
+.fwin__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px;
+  flex: none;
+  cursor: grab;
+  user-select: none;
+}
+.fwin__bar:active {
+  cursor: grabbing;
+}
+.fwin__controls {
+  display: flex;
+  gap: 7px;
+}
+.wctl {
+  display: grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--fill-3);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease-standard),
+    transform var(--dur-1) var(--ease-standard);
+}
+.wctl svg {
+  width: 9px;
+  height: 9px;
+  fill: none;
+  stroke: rgb(0 0 0 / 0.65);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity var(--dur-1) var(--ease-standard);
+}
+.fwin__controls:hover .wctl--close,
+.wctl--close:focus-visible {
+  background: var(--laser);
+}
+.fwin__controls:hover .wctl--min,
+.wctl--min:focus-visible {
+  background: var(--s-warn);
+}
+.fwin__controls:hover .wctl--zoom,
+.wctl--zoom:focus-visible {
+  background: var(--brand);
+}
+.fwin__controls:hover .wctl svg,
+.wctl:focus-visible svg {
+  opacity: 1;
+}
+.wctl:active {
+  transform: scale(0.9);
+}
+.fwin__title {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: var(--text);
+}
+.fwin__meta {
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.fwin__body {
+  position: relative;
+  flex: 1;
+  margin: 0 6px 6px;
+  border-radius: 13px;
+  overflow: hidden;
+  background: #050608;
+}
+.fwin__body .camview {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  aspect-ratio: auto;
+}
+
+/* Ornament: a floating control capsule attached to a surface (visionOS). */
+.ornament {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 999px;
+  max-width: 100%;
+}
+.ornament .segmented {
+  border: 0;
+  background: transparent;
+  border-radius: 999px;
+}
+.ornament .segmented button,
+.ornament .segmented__thumb {
+  border-radius: 999px;
+}
+.ornament .istatus {
+  margin: 0;
+  border: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.ornament .istatus::before {
+  display: none;
+}
+.ornament__sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+
+/* Spatial tilt cards */
+.tilt-stage {
+  perspective: 1100px;
+}
+.tilt {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.fwin__live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--laser);
+  animation: soft-pulse 2s ease-in-out infinite;
+}
+
+/* ── Camera dock slots ─────────────────────────────────────────────────── */
+/* Space the layout reserves for the camera window. The window sits exactly
+   on the visible slot; drag it out to float, drag it back to re-dock. */
+.camera-dock {
+  border-radius: 18px;
+  border: 1px dashed var(--border-strong);
+  background: var(--fill-1);
+}
+/* Desktop/tablet: the slot takes the window's exact proportions (16:9 video
+   + 38 px title bar), sized from the editor body with container units. */
+.editor__body {
+  container-type: size;
+}
+.editor--docked .editor__body {
+  --dock-w: min(calc((100cqh - 20px - 38px) * 16 / 9), 42cqw, 420px);
+}
+.editor__dock {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: var(--dock-w);
+  height: calc(38px + var(--dock-w) * 9 / 16);
+}
+.editor--docked .editor__text {
+  padding-right: calc(var(--dock-w) + 30px);
+}
+/* Phones dock in the Air panel instead; tablets and up use the editor. */
+.airpanel__dock {
+  display: none;
+  flex: none;
+}
+@media (max-width: 760px) {
+  .editor__dock {
+    display: none;
+  }
+  .editor--docked .editor__text {
+    padding-right: 20px;
+  }
+  /* While docked on a phone the panel gives the camera its room: the status
+     rows are already in the Dynamic Island, so they step aside. */
+  .airpanel:has(.airpanel__dock) {
+    max-height: none;
+  }
+  .airpanel:has(.airpanel__dock) .airpanel__list {
+    display: none;
+  }
+  .airpanel:has(.airpanel__dock) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: 10px;
+  }
+  .airpanel:has(.airpanel__dock) > * {
+    grid-column: 1 / -1;
+  }
+  .airpanel:has(.airpanel__dock) > .airpanel__head {
+    grid-row: 1;
+  }
+  .airpanel:has(.airpanel__dock) > .airpanel__dock {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .airpanel:has(.airpanel__dock) > .airpanel__actions {
+    grid-column: 2;
+    grid-row: 2;
+    flex-direction: column;
+    align-items: stretch;
+    margin: 0;
+  }
+  .airpanel:has(.airpanel__dock) > .airpanel__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .airpanel__dock {
+    display: block;
+    padding-top: 38px; /* title bar */
+  }
+  .airpanel__dock::after {
+    content: '';
+    display: block;
+    aspect-ratio: 16 / 9;
+  }
+}
+.fwin--docked {
+  box-shadow: var(--shadow-1);
+}
+
+@media (max-width: 420px) {
+  .editor__title {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}

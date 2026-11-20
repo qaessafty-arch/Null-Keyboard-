@@ -27,7 +27,7 @@ export function CameraPreview({ stream, mirrored = false, children, className, o
   }, [onVideo]);
 
   return (
-    <div className={['camview', mirrored ? 'camview--mirrored' : '', className].filter(Boolean).join(' ')}>
+    <div className={['camview', 'appearance-dark', mirrored ? 'camview--mirrored' : '', className].filter(Boolean).join(' ')}>
       <video ref={ref} className="camview__video" autoPlay muted playsInline aria-label={label} data-testid="camera-video" />
       <div className="camview__overlay">{children}</div>
       {!stream && <div className="camview__empty">No video</div>}

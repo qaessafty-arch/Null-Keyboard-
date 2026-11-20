@@ -37,6 +37,7 @@ import { handScale } from '@/features/gesture-recognition/features';
 import { calibrationLevel, useCalibration, type CalibrationProfile } from '@/engine/calibration/profile';
 import { notify } from '@/stores/noticeStore';
 import { FingerprintMark } from '@/brand/FingerprintMark';
+import { StateView } from '@/components/spatial/StateView';
 import { CameraStage } from '@/components/camera/CameraStage';
 import '@/styles/calibrate.css';
 
@@ -168,20 +169,14 @@ export function CalibrationPage() {
 
   if (!live) {
     return (
-      <div className="page">
-        <header className="page__head calib__header">
-          <FingerprintMark size={44} />
-          <div>
-            <p className="eyebrow">Air Mode</p>
-            <h1>Calibration</h1>
-          </div>
-        </header>
-        <header className="page__head">
-          <p className="muted page__lead">
-            Calibration needs the live phone camera. Connect your phone first.
-            {existing && ' A saved calibration exists on this device and will be used for air typing.'}
-          </p>
-        </header>
+      <div className="page calib-locked">
+        <StateView
+          state={linkState === 'reconnecting' ? 'connecting' : linkState === 'disconnected' ? 'disconnected' : 'idle'}
+          title={linkState === 'reconnecting' ? 'Reconnecting to your phone…' : 'Calibration needs your phone'}
+          body={`Calibration maps your desk from the live phone camera. Connect your phone first.${
+            existing ? ' A saved calibration exists on this device and will be used for air typing.' : ''
+          }`}
+        />
         <ol className="wizard" aria-label="Calibration steps">
           {STEPS.map((s, i) => (
             <li key={s} className="wizard__step is-locked">

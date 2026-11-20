@@ -7,6 +7,8 @@ import { useSettings } from '@/stores/settingsStore';
 import { QUALITY_PROFILES } from '@/engine/performance/quality';
 import { useCalibration } from '@/engine/calibration/profile';
 import { FingerprintMark } from '@/brand/FingerprintMark';
+import { TiltCard } from '@/components/spatial/TiltCard';
+import '@/components/spatial/spatial.css';
 
 const HeroScene = lazy(() => import('@/rendering/three/HeroScene').then((m) => ({ default: m.HeroScene })));
 
@@ -49,7 +51,7 @@ export function HomePage() {
         </p>
 
         <div className="home__modes">
-          <button type="button" className="mode-card" onClick={() => go('touch')} data-testid="start-touch">
+          <TiltCard className="mode-card" onClick={() => go('touch')} data-testid="start-touch">
             <span className="mode-card__icon">
               <Icon name="hand" size={22} />
             </span>
@@ -59,9 +61,9 @@ export function HomePage() {
             </span>
             <span className="mode-card__state mode-card__state--ok">Ready</span>
             <Icon name="arrowRight" className="mode-card__arrow" />
-          </button>
+          </TiltCard>
 
-          <button type="button" className="mode-card" onClick={() => go('air')} data-testid="start-air">
+          <TiltCard className="mode-card" onClick={() => go('air')} data-testid="start-air">
             <span className="mode-card__icon">
               <Icon name="camera" size={22} />
             </span>
@@ -71,7 +73,7 @@ export function HomePage() {
             </span>
             <span className={`mode-card__state${airReady ? ' mode-card__state--ok' : ''}`}>{airReady ? 'Calibrated' : 'Needs phone'}</span>
             <Icon name="arrowRight" className="mode-card__arrow" />
-          </button>
+          </TiltCard>
         </div>
 
         <ul className="home__facts">

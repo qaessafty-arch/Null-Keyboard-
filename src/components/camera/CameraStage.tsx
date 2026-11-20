@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { CameraPreview } from './CameraPreview';
 import { LandmarkOverlay, type OverlayExtras } from './LandmarkOverlay';
-import { FingerprintMark } from '@/brand/FingerprintMark';
+import { StateView } from '@/components/spatial/StateView';
 import { Icon } from '@/components/common/Icon';
 import { useFullscreenElement } from '@/hooks/useFullscreen';
 
@@ -51,7 +51,7 @@ export function CameraStage({
   const live = phase === 'live' && !!stream;
 
   return (
-    <div ref={host} className={`stage stage--${phase}${fs.active ? ' stage--fullscreen' : ''}`} data-phase={phase}>
+    <div ref={host} className={`stage appearance-dark stage--${phase}${fs.active ? ' stage--fullscreen' : ''}`} data-phase={phase}>
       <CameraPreview stream={live ? stream : null} mirrored={mirrored} className="stage__video" onVideo={onVideo}>
         <LandmarkOverlay extras={extras} visible={landmarks} />
         {children}
@@ -59,8 +59,11 @@ export function CameraStage({
 
       {!live && (
         <div className="stage__state" aria-live="polite">
-          <FingerprintMark size={64} state={phase === 'idle' ? 'idle' : 'scanning'} />
-          {caption && <p>{caption}</p>}
+          <StateView
+            state={phase === 'idle' ? 'idle' : phase === 'interrupted' ? 'disconnected' : 'connecting'}
+            title={phase === 'idle' ? 'No camera connected' : phase === 'waiting' ? 'Waiting for your phone' : phase === 'interrupted' ? 'Connection interrupted' : 'Connecting'}
+            body={caption}
+          />
         </div>
       )}
 

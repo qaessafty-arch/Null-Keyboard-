@@ -1,0 +1,214 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Liquid Glass materials
+   Two tiers, so the GPU stays free for the camera pipeline:
+   • Floating layers (nav, island, windows, ornaments, toasts, dialogs):
+     real backdrop blur + saturation, specular rim, top sheen, and a
+     pointer-tracked reflection (--mx / --my set by useSpecular()).
+   • In-flow surfaces (panels, cards): the same rim and sheen without blur.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Shared rim: a 1 px gradient border that is brightest where light hits.
+   :where() keeps this at zero specificity so a component's own positioning
+   (fixed windows, sticky bars) always wins over the material layer. */
+:where(.glass, .surface, .nav, .panel, .pair, .guide, .placement, .linkstrip, .pcard, .airpanel, .editor, .mode-card, .toast, .dialog, .istatus, .calib__panel, .phone__card, .ornament, .fwin) {
+  position: relative;
+  isolation: isolate;
+}
+
+.glass::before,
+.surface::before,
+.nav::before,
+.panel::before,
+.pair::before,
+.guide::before,
+.placement::before,
+.linkstrip::before,
+.pcard::before,
+.airpanel::before,
+.editor::before,
+.mode-card::before,
+.toast::before,
+.istatus::before,
+.calib__panel::before,
+.phone__card::before,
+.ornament::before,
+.fwin::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(160deg, var(--glass-rim-hi), var(--glass-rim-lo) 28%, var(--glass-rim-lo) 70%, color-mix(in srgb, var(--glass-rim-hi) 45%, transparent));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+/* In-flow surfaces: rim + sheen, no blur. */
+.surface,
+.panel,
+.pair,
+.guide,
+.placement,
+.linkstrip,
+.pcard,
+.airpanel,
+.editor,
+.calib__panel,
+.phone__card {
+  border-color: transparent !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-sheen) 60%, transparent), transparent 120px),
+    var(--surface) !important;
+}
+
+/* Floating glass. */
+.glass,
+.nav,
+.ornament,
+.fwin,
+.toast,
+.dialog,
+.mode-card,
+.istatus {
+  background:
+    linear-gradient(180deg, var(--glass-sheen), transparent 55%),
+    var(--glass) !important;
+  border-color: transparent !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  box-shadow:
+    inset 0 1px 0 var(--glass-inner),
+    var(--shadow-float);
+}
+.glass--thick,
+.fwin,
+.dialog {
+  background:
+    linear-gradient(180deg, var(--glass-sheen), transparent 55%),
+    var(--glass-strong) !important;
+}
+.glass--thin {
+  background: var(--glass-thin) !important;
+}
+.nav,
+.istatus,
+.mode-card {
+  box-shadow:
+    inset 0 1px 0 var(--glass-inner),
+    var(--shadow-1);
+}
+
+/* Pointer-tracked reflection on interactive glass. */
+.reflect::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, -40%), var(--glass-reflect), transparent 60%);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-standard);
+  pointer-events: none;
+}
+.reflect:hover::after {
+  opacity: 1;
+}
+
+/* Low quality: no blur anywhere (iGPU budget goes to tracking). */
+:root[data-quality='low'] .glass,
+:root[data-quality='low'] .nav,
+:root[data-quality='low'] .ornament,
+:root[data-quality='low'] .fwin,
+:root[data-quality='low'] .toast,
+:root[data-quality='low'] .dialog,
+:root[data-quality='low'] .mode-card,
+:root[data-quality='low'] .istatus,
+:root[data-quality='low'] .island {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--surface-2) !important;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .nav,
+  .ornament,
+  .fwin,
+  .toast,
+  .dialog,
+  .mode-card,
+  .istatus {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--surface-2) !important;
+  }
+}
+
+/* ── Micro-interactions ────────────────────────────────────────────────── */
+
+/* Success morph: the icon pops in and the label settles in brand colour. */
+.btn--done {
+  color: var(--brand-text);
+  border-color: rgb(var(--brand-rgb) / 0.35);
+}
+.btn--done svg {
+  animation: done-pop 420ms var(--ease-spring);
+}
+@keyframes done-pop {
+  0% {
+    transform: scale(0.4) rotate(-12deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* Calibration — locked: the state view leads, steps sit quietly below. */
+.calib-locked {
+  max-width: 640px;
+  margin-inline: auto;
+}
+.calib-locked .sview {
+  padding-top: 40px;
+}
+.calib-locked .wizard {
+  opacity: 0.72;
+}
+.calib-locked .page__actions {
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn--done svg {
+    animation: none;
+  }
+}
+
+/* ── Context-aware chrome ──────────────────────────────────────────────── */
+/* While air typing is live, navigation and the status bar recede so the
+   keyboard and text own the screen; pointing at them brings them back.
+   The Dynamic Island stays at full strength — it carries the live state. */
+.nav__brand,
+.nav__links,
+.modepick,
+.nav__icon,
+.statusbar,
+.tabbar {
+  transition:
+    opacity var(--dur-3) var(--ease-standard),
+    filter var(--dur-3) var(--ease-standard);
+}
+.app[data-focus='typing'] .nav:not(:hover):not(:focus-within) :is(.nav__brand, .nav__links, .modepick, .nav__icon),
+.app[data-focus='typing'] .statusbar:not(:hover),
+.app[data-focus='typing'] .tabbar:not(:focus-within) {
+  opacity: 0.4;
+  filter: saturate(0.5);
+}

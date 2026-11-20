@@ -1,0 +1,364 @@
+/* ── Dynamic Island ────────────────────────────────────────────────────────
+   Always a black, near-opaque capsule (in both appearances), anchored to the
+   right of its slot so it grows leftward and downward over the content. */
+
+.island-slot {
+  position: relative;
+  width: 236px;
+  height: 34px;
+  flex: none;
+}
+
+.island {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 45;
+  overflow: hidden;
+  color: #f5f6fa;
+  background: #050507;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.07),
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 10px 30px -12px rgb(0 0 0 / 0.55);
+  color-scheme: dark;
+}
+.island--compact {
+  width: 236px;
+  height: 34px;
+}
+.island--activity {
+  width: 320px;
+  height: 52px;
+}
+.island--expanded {
+  width: 360px;
+  height: auto;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    inset 0 1px 0 rgb(255 255 255 / 0.1),
+    0 40px 90px -30px rgb(0 0 0 / 0.75),
+    0 12px 30px -16px rgb(0 0 0 / 0.6);
+}
+
+.island__face {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 0 12px 0 9px;
+  cursor: pointer;
+  border-radius: inherit;
+}
+.island__face:focus-visible {
+  outline: 2px solid rgb(50 230 160 / 0.8);
+  outline-offset: 2px;
+}
+.island__content {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  flex: 1;
+  animation: island-in 280ms var(--ease-standard);
+}
+@keyframes island-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.96);
+  }
+}
+.island .fp {
+  color: #f5f6fa;
+  --brand: #32e6a0;
+}
+.island__label {
+  font-size: 12.5px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.island__trail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  color: #8a91a1;
+}
+.island__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4a505e;
+}
+.island__dot--ok {
+  background: #32e6a0;
+}
+.island__dot--warn {
+  background: #ffb547;
+  animation: soft-pulse 1.4s ease-in-out infinite;
+}
+.island__dot--err {
+  background: #ff4d6a;
+}
+.island__cam {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.island__cam.is-live {
+  color: #f5f6fa;
+}
+.island__rec {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff365d;
+  box-shadow: 0 0 0 2px #050507;
+  animation: soft-pulse 2s ease-in-out infinite;
+}
+.island__laser {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.island__laser--laser {
+  background: #ff365d;
+  box-shadow: 0 0 6px rgb(255 54 93 / 0.8);
+}
+.island__laser--holo {
+  background: #32e6a0;
+  box-shadow: 0 0 6px rgb(50 230 160 / 0.8);
+}
+
+/* Live activity */
+.island__activity-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.08);
+  flex: none;
+}
+.island__activity--ok .island__activity-icon {
+  color: #32e6a0;
+  background: rgb(50 230 160 / 0.14);
+}
+.island__activity--warn .island__activity-icon {
+  color: #ffb547;
+  background: rgb(255 181 71 / 0.14);
+}
+.island__activity--laser .island__activity-icon {
+  color: var(--accent, #ff365d);
+  background: rgb(var(--accent-rgb, 255 54 93) / 0.16);
+}
+.island__activity-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.island__activity-text strong {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.island__activity-text span {
+  font-size: 11.5px;
+  color: #8a91a1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Expanded panel */
+.island__panel {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 12px;
+}
+.island__panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px 10px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+.island__x {
+  all: unset;
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #8a91a1;
+  background: rgb(255 255 255 / 0.07);
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-standard);
+}
+.island__x:hover {
+  background: rgb(255 255 255 / 0.14);
+  color: #fff;
+}
+.island__row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 6px;
+  border-radius: 14px;
+  transition: background-color var(--dur-1) var(--ease-standard);
+}
+.island__row:hover {
+  background: rgb(255 255 255 / 0.045);
+}
+.island__row-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.07);
+  color: #c7cbd4;
+  flex: none;
+}
+.island__row-icon--ok {
+  color: #32e6a0;
+  background: rgb(50 230 160 / 0.13);
+}
+.island__row-icon--warn {
+  color: #ffb547;
+  background: rgb(255 181 71 / 0.13);
+}
+.island__row-icon--err {
+  color: #ff4d6a;
+  background: rgb(255 77 106 / 0.13);
+}
+.island__row-icon--laser {
+  color: var(--accent, #ff365d);
+  background: rgb(var(--accent-rgb, 255 54 93) / 0.14);
+}
+.island__row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.3;
+}
+.island__row-text span {
+  font-size: 11.5px;
+  color: #8a91a1;
+}
+.island__row-text strong {
+  font-size: 13px;
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.island__btn {
+  all: unset;
+  flex: none;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f5f6fa;
+  background: rgb(255 255 255 / 0.1);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease-standard),
+    transform var(--dur-1) var(--ease-standard);
+}
+.island__btn:hover {
+  background: rgb(255 255 255 / 0.17);
+}
+.island__btn:active {
+  transform: scale(0.96);
+}
+.island__btn--primary {
+  background: #32e6a0;
+  color: #04140d;
+}
+.island__btn--primary:hover {
+  background: #4bf0b2;
+}
+.island__seg {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.07);
+}
+.island__seg button {
+  all: unset;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: #8a91a1;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease-standard),
+    color var(--dur-1) var(--ease-standard);
+}
+.island__seg button.is-on {
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+}
+.island__more {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 9px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 550;
+  color: #8a91a1;
+  cursor: pointer;
+}
+.island__more:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.05);
+}
+
+@media (max-width: 1180px) {
+  .island-slot,
+  .island--compact {
+    width: 168px;
+  }
+}
+@media (max-width: 760px) {
+  .island-slot,
+  .island--compact {
+    width: 150px;
+  }
+  .island--activity {
+    width: min(300px, calc(100vw - 80px));
+  }
+  .island--expanded {
+    width: min(360px, calc(100vw - 24px));
+    right: -40px;
+  }
+  .island__trail .island__laser {
+    display: none;
+  }
+}

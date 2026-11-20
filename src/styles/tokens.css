@@ -1,53 +1,17 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   NULL-TECH design tokens
-   Calm graphite surfaces, one brand colour (signal green) used sparingly,
-   laser red reserved for the laser keyboard and live-camera states.
+   NULL-TECH design tokens — light & dark appearance
+   Every colour in the interface resolves to a token below.
+   `data-appearance` on <html> is resolved from Settings (system / light /
+   dark). `.appearance-dark` re-scopes dark tokens locally: the keyboard deck
+   and camera stage are dark "devices" in both appearances.
    ───────────────────────────────────────────────────────────────────────── */
+
 :root {
-  color-scheme: dark;
-
-  /* Surfaces */
-  --bg: #090b10;
-  --bg-2: #0c0f15;
-  --surface: #11141c;
-  --surface-2: #191d27;
-  --surface-3: #222734;
-  --glass: rgb(17 20 28 / 0.72);
-  --glass-strong: rgb(21 25 34 / 0.86);
-
-  /* Lines */
-  --border: rgb(255 255 255 / 0.09);
-  --border-strong: rgb(255 255 255 / 0.15);
-  --hairline: rgb(255 255 255 / 0.06);
-
-  /* Text */
-  --text: #f5f6fa;
-  --text-2: #9299a8;
-  --text-3: #636b7c;
-  --text-on-brand: #04140d;
-
-  /* Brand & function */
-  --brand: #32e6a0;
-  --brand-rgb: 50 230 160;
-  --laser: #ff365d;
-  --laser-rgb: 255 54 93;
-
-  /* Status scale (excellent → critical) */
-  --s-excellent: #32e6a0;
-  --s-good: #a3e35f;
-  --s-warn: #ffb547;
-  --s-crit: #ff4d6a;
-  --s-idle: #636b7c;
-  --ok: var(--s-excellent);
-  --warn: var(--s-warn);
-  --err: var(--s-crit);
-
   /* Type */
   --font-display: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Display', 'Segoe UI', Inter, system-ui,
     sans-serif;
   --font-ui: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI', Inter, system-ui, sans-serif;
   --font-mono: 'SF Mono', 'JetBrains Mono', 'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace;
-
   --fs-11: 11px;
   --fs-12: 12px;
   --fs-13: 13px;
@@ -75,13 +39,9 @@
   --r-m: 12px;
   --r-l: 16px;
   --r-xl: 22px;
+  --r-2xl: 28px;
 
-  /* Elevation */
-  --shadow-1: 0 1px 0 rgb(255 255 255 / 0.035) inset, 0 10px 30px -18px rgb(0 0 0 / 0.75);
-  --shadow-2: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 60px -28px rgb(0 0 0 / 0.85);
-  --shadow-pop: 0 0 0 1px var(--border-strong), 0 30px 80px -24px rgb(0 0 0 / 0.9);
-
-  /* Motion */
+  /* Motion (CSS side; springs live in src/design/motion.ts) */
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-out: var(--ease-standard);
   --ease-spring: cubic-bezier(0.34, 1.26, 0.64, 1);
@@ -93,20 +53,159 @@
   --nav-h: 52px;
   --statusbar-h: 30px;
   --topbar-h: var(--nav-h);
+
+  /* Brand constants (identical in both appearances) */
+  --laser-rgb: 255 54 93;
+}
+
+/* ── Dark appearance (default) ─────────────────────────────────────────── */
+:root,
+:root[data-appearance='dark'],
+.appearance-dark {
+  color-scheme: dark;
+
+  --bg: #090b10;
+  --bg-2: #0c0f15;
+  --bg-glow: rgb(255 255 255 / 0.045);
+  --surface: #11141c;
+  --surface-2: #191d27;
+  --surface-3: #222734;
+  --scrim: rgb(4 5 8 / 0.6);
+
+  --fill-1: rgb(255 255 255 / 0.04);
+  --fill-2: rgb(255 255 255 / 0.065);
+  --fill-3: rgb(255 255 255 / 0.1);
+  --fill-strong: rgb(255 255 255 / 0.15);
+
+  --border: rgb(255 255 255 / 0.09);
+  --border-strong: rgb(255 255 255 / 0.15);
+  --hairline: rgb(255 255 255 / 0.06);
+
+  --text: #f5f6fa;
+  --text-2: #9299a8;
+  --text-3: #636b7c;
+  --text-on-brand: #04140d;
+
+  --brand: #32e6a0;
+  --brand-2: #9cf7d4;
+  --brand-hover: #4bf0b2;
+  --brand-text: #32e6a0;
+  --brand-rgb: 50 230 160;
+  --laser: #ff365d;
+
+  --s-excellent: #32e6a0;
+  --s-good: #a3e35f;
+  --s-warn: #ffb547;
+  --s-crit: #ff4d6a;
+  --s-idle: #636b7c;
+  --ok: var(--s-excellent);
+  --warn: var(--s-warn);
+  --err: var(--s-crit);
+  --warn-text: #ffdba6;
+  --warn-bg: rgb(255 181 71 / 0.07);
+  --warn-border: rgb(255 181 71 / 0.28);
+  --crit-text: #ffc2cf;
+  --crit-bg: rgb(255 54 93 / 0.08);
+  --crit-border: rgb(255 54 93 / 0.32);
+
+  /* Liquid Glass */
+  --glass: rgb(20 23 31 / 0.62);
+  --glass-strong: rgb(24 28 38 / 0.8);
+  --glass-thin: rgb(20 23 31 / 0.42);
+  --glass-blur: 28px;
+  --glass-sat: 180%;
+  --glass-sheen: rgb(255 255 255 / 0.07);
+  --glass-rim-hi: rgb(255 255 255 / 0.34);
+  --glass-rim-lo: rgb(255 255 255 / 0.05);
+  --glass-inner: rgb(255 255 255 / 0.06);
+  --glass-reflect: rgb(255 255 255 / 0.1);
+
+  /* Elevation */
+  --shadow-1: 0 1px 0 rgb(255 255 255 / 0.035) inset, 0 10px 30px -18px rgb(0 0 0 / 0.75);
+  --shadow-2: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 60px -28px rgb(0 0 0 / 0.85);
+  --shadow-float: 0 30px 80px -20px rgb(0 0 0 / 0.75), 0 10px 24px -12px rgb(0 0 0 / 0.6);
+  --shadow-pop: 0 0 0 1px var(--border-strong), 0 30px 80px -24px rgb(0 0 0 / 0.9);
+}
+
+/* ── Light appearance ──────────────────────────────────────────────────── */
+:root[data-appearance='light'] {
+  color-scheme: light;
+
+  --bg: #eff0f4;
+  --bg-2: #f7f7fa;
+  --bg-glow: rgb(255 255 255 / 0.9);
+  --surface: #ffffff;
+  --surface-2: #f5f5f8;
+  --surface-3: #e8e9ee;
+  --scrim: rgb(30 32 40 / 0.28);
+
+  --fill-1: rgb(0 0 0 / 0.035);
+  --fill-2: rgb(0 0 0 / 0.055);
+  --fill-3: rgb(0 0 0 / 0.08);
+  --fill-strong: rgb(0 0 0 / 0.16);
+
+  --border: rgb(0 0 0 / 0.08);
+  --border-strong: rgb(0 0 0 / 0.14);
+  --hairline: rgb(0 0 0 / 0.06);
+
+  --text: #1d1d1f;
+  --text-2: #6b6c74;
+  --text-3: #95969e;
+  --text-on-brand: #04140d;
+
+  --brand: #32e6a0;
+  --brand-2: #0b9e6b;
+  --brand-hover: #2bd894;
+  --brand-text: #0a9566;
+  --brand-rgb: 22 185 125;
+  --laser: #e8264b;
+
+  --s-excellent: #12b37a;
+  --s-good: #6aa93a;
+  --s-warn: #d98c0b;
+  --s-crit: #e0344f;
+  --s-idle: #aeaeb4;
+  --warn-text: #8a5a00;
+  --warn-bg: rgb(217 140 11 / 0.09);
+  --warn-border: rgb(217 140 11 / 0.3);
+  --crit-text: #b3122f;
+  --crit-bg: rgb(224 52 79 / 0.07);
+  --crit-border: rgb(224 52 79 / 0.3);
+
+  --glass: rgb(255 255 255 / 0.62);
+  --glass-strong: rgb(255 255 255 / 0.82);
+  --glass-thin: rgb(255 255 255 / 0.4);
+  --glass-blur: 30px;
+  --glass-sat: 190%;
+  --glass-sheen: rgb(255 255 255 / 0.55);
+  --glass-rim-hi: rgb(255 255 255 / 0.95);
+  --glass-rim-lo: rgb(0 0 0 / 0.07);
+  --glass-inner: rgb(255 255 255 / 0.7);
+  --glass-reflect: rgb(255 255 255 / 0.6);
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -14px rgb(0 0 0 / 0.16);
+  --shadow-2: 0 1px 2px rgb(0 0 0 / 0.05), 0 22px 50px -26px rgb(0 0 0 / 0.25);
+  --shadow-float: 0 30px 70px -24px rgb(20 24 40 / 0.3), 0 10px 24px -14px rgb(20 24 40 / 0.2);
+  --shadow-pop: 0 0 0 1px var(--border), 0 30px 80px -24px rgb(20 24 40 / 0.35);
 }
 
 /* Keyboard laser theme. Chrome stays neutral; only the keyboard, its WebGL
    surface and laser-specific states use --accent. */
 :root[data-theme='laser'] {
-  --accent: var(--laser);
+  --accent: #ff365d;
   --accent-2: #ff7a93;
   --accent-rgb: 255 54 93;
   --accent-2-rgb: 255 122 147;
 }
 
 :root[data-theme='holo'] {
-  --accent: var(--brand);
+  --accent: #32e6a0;
   --accent-2: #8af5cb;
   --accent-rgb: 50 230 160;
   --accent-2-rgb: 138 245 203;
+}
+
+/* Re-scoped dark devices must also re-declare inherited text colour. */
+.appearance-dark {
+  color: var(--text);
 }
