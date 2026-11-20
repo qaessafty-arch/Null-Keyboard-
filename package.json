@@ -1,8 +1,8 @@
 {
   "name": "neo-type",
   "private": true,
-  "version": "1.2.1",
-  "description": "NULL-TECH — spatial input: a laser keyboard you can touch or type on in the air",
+  "version": "1.3.0",
+  "description": "NULL-TECH \u2014 spatial input: a laser keyboard you can touch or type on in the air",
   "type": "module",
   "engines": {
     "node": ">=22.18"
@@ -16,6 +16,8 @@
     "preview": "vite preview",
     "start": "npm run build && node server/index.ts",
     "serve": "node server/index.ts",
+    "worker:dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc -b",
     "test": "vitest run --mode test",
     "test:watch": "vitest --mode test",
@@ -33,6 +35,7 @@
     "zustand": "5.1.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20261031.1",
     "@playwright/test": "1.63.0",
     "@testing-library/jest-dom": "8.0.0",
     "@testing-library/react": "16.3.3",
@@ -47,6 +50,7 @@
     "typescript": "6.0.3",
     "vite": "8.3.8",
     "vite-plugin-pwa": "2.0.0",
-    "vitest": "5.1.1"
+    "vitest": "5.1.1",
+    "wrangler": "4.156.0"
   }
 }

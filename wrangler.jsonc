@@ -1,0 +1,18 @@
+// Cloudflare Workers deployment (free plan). See README → "Put it online".
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "null-tech",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  // node:crypto for the shared SignalingHub (room codes, tokens)
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "HUB", "class_name": "SignalHub" }]
+  },
+  // SQLite-backed Durable Objects are included in the Workers Free plan.
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SignalHub"] }]
+}

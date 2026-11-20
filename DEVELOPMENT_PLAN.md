@@ -181,9 +181,10 @@ composition roots and should not live inside reusable `components/`.
 - ✅ Micro-interactions and context: copy success morph, focus mode while air typing, appearance in Settings
 - Bugs found while verifying: the materials layer's `position: relative` overrode the camera window's `position: fixed` (now zero-specificity `:where()`); the window opened at the video's intrinsic width and shrank (now starts at its size); the expanded island rendered under the camera window (nav above windows); the default window position covered the Air panel and the editor on phones (now docks into a reserved slot); the slot was measured mid page-transition (re-measured after it settles)
 
-### v1.2.1 — Online hosting ✅
-- ✅ Render Blueprint (`render.yaml`): one Node web service, HTTPS by Render, WebSockets for `/signal`, auto-deploy from the branch
-- ✅ Hosted mode in `server/index.ts` from `RENDER_EXTERNAL_URL` / `PUBLIC_URL`: plain HTTP behind the TLS proxy, the public URL in the pairing QR, HSTS, `X-Forwarded-For` trusted only on Render or with `TRUST_PROXY=1`
+### v1.3.0 — Free online hosting ✅
+- ✅ Cloudflare Workers (free plan, no card): static assets from `dist/`, `/signal` in a Durable Object running the same `SignalingHub`; per-IP limits from `CF-Connecting-IP`; loopback origins never advertised; security headers in `public/_headers`
+- Replaced the first attempt, a Render Blueprint, because Render now asks for a payment card even for free services
+- ✅ Hosted mode in `server/index.ts` (any HTTPS reverse proxy) from `PUBLIC_URL` (or `RENDER_EXTERNAL_URL`): plain HTTP behind the TLS proxy, the public URL in the pairing QR, HSTS, `X-Forwarded-For` trusted only on Render or with `TRUST_PROXY=1`
 - ✅ Pairing hub hardened for the public internet: limits per client instead of per socket (12 sockets, 20 join attempts per minute, 4 sessions), 5,000 rooms in total, no silent overwrite on a code collision
 - ✅ Copy kept honest: "Video stays on your Wi-Fi" (no STUN/TURN; only the handshake crosses the server)
 
@@ -204,7 +205,9 @@ composition roots and should not live inside reusable `components/`.
 | 2026-11-20 | v1.1 | `npm test` / `npm run test:e2e` after the redesign | ✅ 104/104 · 22/22 (adds splash, nav indicator, phone tab bar, real-data charts, guided steps) |
 | 2026-11-20 | v1.1 | Screenshot tour with the live pipeline: 1368×912, 1024×1366, 390×844 (all sections) | ✅ 0 console errors, no horizontal overflow |
 | 2026-11-20 | v1.2 | `npm test` / `npm run test:e2e` after the design-system pass | ✅ 104/104 · 25/25 (adds island + appearance, copy morph, camera window dock/float/snap) |
-| 2026-11-20 | v1.2.1 | Camera e2e suite against the production server in Render mode (`RENDER=true`, public URL, HTTP behind proxy) | ✅ 7/7 |
+| 2026-11-20 | v1.2.1 | Camera e2e suite against the production server in hosted mode (public URL, HTTP behind proxy) | ✅ 7/7 |
+| 2026-11-20 | v1.3.0 | Full e2e suite against the Cloudflare Worker in the real Workers runtime (`wrangler dev`) | ✅ 25/25 (camera pipeline through the Durable Object hub) |
+| 2026-11-20 | v1.3.0 | Worker limit probe: 13th socket per client → 429; other clients unaffected; cross-site origin → 403; loopback origin not advertised | ✅ |
 | 2026-11-20 | v1.2.1 | Hosted signaling probe: QR URL is the public URL; 13th socket per client → 429; other clients unaffected; cross-site origin → 403 | ✅ |
 | 2026-11-20 | v1.2 | Screenshot tour in dark and light with the live pipeline: 1368×912, 1024×1366, 390×844 | ✅ 0 console errors |
 

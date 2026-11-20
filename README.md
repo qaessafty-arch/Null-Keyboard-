@@ -7,9 +7,9 @@ A dual-input virtual keyboard with a laser-holographic look. You can type in two
 
 Both modes feed the same keyboard engine, editor, settings and visuals.
 
-Target setup: Microsoft Surface Pro 7 (i7, 16 GB) and a Samsung Galaxy S25 Ultra. No accounts, no API keys, no extra hardware. Run it on your own PC, or [put it online](#put-it-online-render) so any browser can open it; either way the camera video stays on your Wi-Fi.
+Target setup: Microsoft Surface Pro 7 (i7, 16 GB) and a Samsung Galaxy S25 Ultra. No accounts, no API keys, no extra hardware. Run it on your own PC, or [put it online for free](#put-it-online-free-cloudflare) so any browser can open it; either way the camera video stays on your Wi-Fi.
 
-> **Version 1.2.0: Apple-inspired design system, and it can run online.** Liquid Glass materials, the Dynamic Island, spatial camera window, and light and dark appearance (see [Design system](#design-system)). One-click hosting on Render with a hardened pairing server (see [Put it online](#put-it-online-render)).
+> **Version 1.3.0: Apple-inspired design system, and free online hosting.** Liquid Glass materials, the Dynamic Island, spatial camera window, and light and dark appearance (see [Design system](#design-system)). Free hosting on Cloudflare Workers with a hardened pairing server (see [Put it online](#put-it-online-free-cloudflare)).
 >
 > **Version 1.1.0: NULL-TECH design system.** The interface was redesigned around a calm graphite surface language, a custom fingerprint brand mark, and instrument-grade camera, calibration and performance views. Functionality is unchanged and the same tests pass. See [Design system](#design-system).
 >
@@ -97,7 +97,9 @@ The calibration is saved on this device (IndexedDB). You can **Recalibrate** fro
 | Command | What it does |
 | --- | --- |
 | `npm start` | Build, then serve HTTPS on your LAN at port 8443 (`server/index.ts`). This is the normal way to run it |
-| `npm run serve` | Serve an existing build. Set `PORT=9000` to change the port, or `NEO_HTTP=1` for plain HTTP (localhost only). Behind a hosting proxy, set `PUBLIC_URL` (see [Put it online](#put-it-online-render)) |
+| `npm run serve` | Serve an existing build. Set `PORT=9000` to change the port, or `NEO_HTTP=1` for plain HTTP (localhost only). Behind a hosting proxy, set `PUBLIC_URL` and `TRUST_PROXY=1` |
+| `npm run worker:dev` | Build, then run the Cloudflare Worker locally in the real Workers runtime (app + Durable Object pairing hub) |
+| `npm run deploy` | Build and deploy to Cloudflare Workers (after `npx wrangler login`) |
 | `npm run dev` | Vite dev server at http://localhost:5173, for Touch Mode development |
 | `npm run dev:lan` | Vite dev server over HTTPS on the LAN, for Air Mode development with the phone |
 | `npm run build` | Type-check and build into `dist/` |
@@ -105,22 +107,31 @@ The calibration is saved on this device (IndexedDB). You can **Recalibrate** fro
 | `npm run test:e2e` | End-to-end tests in Chromium (Playwright), including the fake-camera pipeline. First run on a new machine: `npx playwright install chromium` |
 | `npm run setup:assets` | Re-copy the MediaPipe wasm and re-download the hand model (this runs automatically after `npm install`) |
 
-## Put it online (Render)
+## Put it online (free, Cloudflare)
 
-The repository includes a Render Blueprint (`render.yaml`). It runs the same Node server as `npm start`: the app plus the `/signal` pairing hub over WebSockets. Render provides the HTTPS certificate, so there are no certificate warnings on the Surface or the phone.
+NULL-TECH runs on the **Cloudflare Workers free plan**: no credit card, a real HTTPS address, no sleep and no cold starts. The app is served as static assets, and the pairing hub (`/signal`) runs in a **Durable Object**. It uses the same `SignalingHub` code as the Node server, so pairing, resume, expiry and all limits behave identically (`worker/index.ts`, `wrangler.jsonc`).
 
-1. Sign in at [render.com](https://render.com) (the free plan is enough) and connect your GitHub account.
-2. Open **New → Blueprint**, pick this repository and the `ccr-b9a5f49f-5ewgay` branch, and click **Apply**. You can also use the one-click link: `https://render.com/deploy?repo=https://github.com/qaessafty-arch/Null-Keyboard-`
-3. Wait for the first build (about 3–5 minutes; it downloads the hand model). Your address is `https://null-tech-XXXX.onrender.com`.
-4. Open that address on the Surface → **Connect** → scan the QR code with the phone. Both devices must still be **on the same Wi-Fi**.
+**One-time setup in the browser (about 5 minutes):**
+
+1. Create a free account at [dash.cloudflare.com](https://dash.cloudflare.com/sign-up). No card is needed.
+2. Go to **Workers & Pages → Create → Import a repository**, connect GitHub, and pick `qaessafty-arch/Null-Keyboard-`.
+3. Check the settings, then click **Create and deploy**:
+   - **Production branch:** `ccr-b9a5f49f-5ewgay`
+   - **Build command:** `npm run build`
+   - **Deploy command:** `npx wrangler deploy` (the default)
+4. After the first build (about 3 minutes), your address is `https://null-tech.<your-subdomain>.workers.dev`. Open it on the Surface → **Connect** → scan the QR code with the phone. Both devices must be **on the same Wi-Fi**.
+
+Every push to that branch redeploys automatically. From a terminal you can also run `npx wrangler login` and then `npm run deploy`.
 
 What changes online, and what doesn't:
 
-- **The video never leaves your Wi-Fi.** WebRTC runs without STUN/TURN relays, so the phone streams straight to the Surface on your local network. Only the short pairing handshake (connection descriptions as text) passes through the server, and it keeps nothing.
-- **Hosted mode is automatic.** On Render, the server reads `RENDER_EXTERNAL_URL`, so it speaks plain HTTP behind Render's TLS proxy, puts the public address in the QR code, and rate-limits by the real client IP from `X-Forwarded-For`. On any other HTTPS reverse proxy, set `PUBLIC_URL=https://your.domain` and `TRUST_PROXY=1`.
-- **Public-server limits:** at most 12 signaling sockets and 20 pairing-code attempts per minute per client (on top of the per-socket limit), 4 pairing sessions per client and 5,000 in total. Cross-site pages are refused (403).
-- **The free plan sleeps** after 15 minutes without visitors. The first visit after that takes about a minute to wake it. The installed app (PWA) still opens offline for Touch Mode.
-- Every push to the branch redeploys automatically (`autoDeploy: true`).
+- **The video never leaves your Wi-Fi.** WebRTC runs without STUN/TURN relays, so the phone streams straight to the Surface on your local network. Only the short pairing handshake (connection descriptions as text) passes through Cloudflare, and nothing is stored.
+- **Limits on the public hub:** at most 12 signaling sockets, 20 pairing-code attempts per minute and 4 pairing sessions per client IP, plus 5,000 sessions in total. Cross-site pages are refused (403).
+- **Free plan headroom:** 100,000 requests per day and enough Durable Object time for the hub to stay connected all day. A personal setup uses a tiny fraction.
+- **Security headers** (CSP, HSTS, frame and permissions policies) come from `public/_headers` and match the Node server's.
+- Try the exact Cloudflare runtime locally with `npm run worker:dev`. It uses the real Workers runtime, and the e2e suite passes against it.
+
+**Self-hosting instead:** `npm start` on your PC still works as before. Behind any other HTTPS reverse proxy, run `npm run serve` with `PUBLIC_URL=https://your.domain` and `TRUST_PROXY=1`.
 
 ### Optional: trusted HTTPS with mkcert
 
