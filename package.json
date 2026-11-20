@@ -1,7 +1,7 @@
 {
   "name": "neo-type",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "NULL-TECH — spatial input: a laser keyboard you can touch or type on in the air",
   "type": "module",
   "engines": {

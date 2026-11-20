@@ -78,8 +78,8 @@ export function HomePage() {
 
         <ul className="home__facts">
           <li>On-device vision</li>
-          <li>Local network only</li>
-          <li>No accounts, no cloud</li>
+          <li>Video stays on your Wi-Fi</li>
+          <li>No accounts, no tracking</li>
         </ul>
       </div>
     </div>

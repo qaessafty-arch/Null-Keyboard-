@@ -2,7 +2,9 @@ import type { SignalPayload } from '@/communication/signaling/protocol';
 
 /**
  * LAN-only WebRTC: no STUN/TURN servers. Both devices are on the same
- * network, so host candidates suffice and nothing leaves the LAN.
+ * network, so host candidates suffice and the video never leaves the LAN —
+ * even when the app is hosted online, where only the pairing handshake
+ * (SDP/ICE text) passes through the signaling server.
  */
 export const RTC_CONFIG: RTCConfiguration = {
   iceServers: [],

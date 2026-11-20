@@ -206,3 +206,69 @@ describe('parseClientMessage', () => {
     expect(parseClientMessage(JSON.stringify({ t: 'nope' }))).toBeNull();
   });
 });
+
+describe('public-server limits (per client, not per socket)', () => {
+  const ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const nthCode = (n: number) => {
+    let s = '';
+    for (let i = 0; i < 6; i++) {
+      s += ALPHA[n % ALPHA.length];
+      n = Math.floor(n / ALPHA.length);
+    }
+    return s;
+  };
+  function hubWith(over: ConstructorParameters<typeof SignalingHub>[0] = {}) {
+    let t = 0;
+    let n = 0;
+    const hub = new SignalingHub({ now: () => t, randomCode: () => nthCode(n++), ...over });
+    const peer = (client?: string) => {
+      const p = new FakePeer();
+      hub.connect(p, client);
+      return p;
+    };
+    const send = (p: FakePeer, msg: object) => hub.handle(p, JSON.stringify(msg));
+    return { hub, peer, send, advance: (ms: number) => (t += ms) };
+  }
+
+  it('limits code guessing across many sockets from one client', () => {
+    const { peer, send, advance } = hubWith({ maxJoinAttemptsPerClientPerMinute: 5 });
+    const results: string[] = [];
+    for (let i = 0; i < 8; i++) {
+      const p = peer('203.0.113.7'); // a fresh socket each time
+      send(p, { t: 'join', code: 'ZZZZZZ' });
+      results.push((p.last() as { code: string }).code);
+    }
+    expect(results.slice(0, 5)).toEqual(Array(5).fill('bad-code'));
+    expect(results.slice(5)).toEqual(Array(3).fill('rate-limited'));
+    // Another client is unaffected, and the window slides.
+    const other = peer('198.51.100.2');
+    send(other, { t: 'join', code: 'ZZZZZZ' });
+    expect(other.last()).toMatchObject({ code: 'bad-code' });
+    advance(61_000);
+    const later = peer('203.0.113.7');
+    send(later, { t: 'join', code: 'ZZZZZZ' });
+    expect(later.last()).toMatchObject({ code: 'bad-code' });
+  });
+
+  it('caps pairing sessions per client and in total', () => {
+    const { hub, peer, send } = hubWith({ maxRoomsPerClient: 2, maxRooms: 3 });
+    const a = [peer('a'), peer('a'), peer('a')];
+    a.forEach((p) => send(p, { t: 'host' }));
+    expect(a.map((p) => p.last()!.t)).toEqual(['room', 'room', 'error']);
+    const b = [peer('b'), peer('b')];
+    b.forEach((p) => send(p, { t: 'host' }));
+    expect(b.map((p) => p.last()!.t)).toEqual(['room', 'error']);
+    expect(hub.roomCount).toBe(3);
+  });
+
+  it('a real phone still pairs while someone else is guessing', () => {
+    const { peer, send } = hubWith({ maxJoinAttemptsPerClientPerMinute: 3 });
+    const host = peer('home');
+    send(host, { t: 'host' });
+    const code = (host.last() as { code: string }).code;
+    for (let i = 0; i < 10; i++) send(peer('attacker'), { t: 'join', code: 'ZZZZZZ' });
+    const phone = peer('home');
+    send(phone, { t: 'join', code });
+    expect(phone.of('joined')).toHaveLength(1);
+  });
+});

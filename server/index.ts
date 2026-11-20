@@ -5,6 +5,11 @@
  *   npm start                 build + serve on https://<this-pc>:8443
  *   PORT=9000 npm run serve   serve an existing build on another port
  *   NEO_HTTP=1 npm run serve  plain HTTP (localhost use only; phones will block the camera)
+ *
+ * Hosted (Render, or any HTTPS reverse proxy):
+ *   PUBLIC_URL=https://app.example.com  advertise this URL for the phone (Render sets RENDER_EXTERNAL_URL)
+ *   TRUST_PROXY=1                       rate-limit by X-Forwarded-For (on by default on Render)
+ * The proxy terminates TLS, so the server itself speaks plain HTTP there.
  */
 import { createServer as createHttps } from 'node:https';
 import { createServer as createHttp, type IncomingMessage, type ServerResponse } from 'node:http';
@@ -17,7 +22,11 @@ import { lanUrls } from './lan.ts';
 const ROOT = resolve(process.cwd(), 'dist');
 const PORT = Number(process.env.PORT ?? 8443);
 const HOST = process.env.HOST ?? '0.0.0.0';
-const USE_HTTP = process.env.NEO_HTTP === '1';
+const ON_RENDER = process.env.RENDER === 'true';
+const PUBLIC_URL = (process.env.PUBLIC_URL ?? process.env.RENDER_EXTERNAL_URL ?? '').replace(/\/+$/, '');
+const HOSTED = PUBLIC_URL !== '';
+const USE_HTTP = process.env.NEO_HTTP === '1' || HOSTED;
+const TRUST_PROXY = process.env.TRUST_PROXY === '1' || ON_RENDER;
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -40,6 +49,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   'Referrer-Policy': 'no-referrer',
   'X-Frame-Options': 'DENY',
   'Permissions-Policy': 'camera=(self), microphone=(), geolocation=()',
+  ...(PUBLIC_URL.startsWith('https://') ? { 'Strict-Transport-Security': 'max-age=31536000' } : {}),
   'Content-Security-Policy': [
     "default-src 'self'",
     // inline: pre-paint theme script; wasm-unsafe-eval: MediaPipe
@@ -100,12 +110,17 @@ async function main() {
     server = createHttps({ key: cert.key, cert: cert.cert }, handler);
   }
   attachSignaling(server, {
-    getUrls: () => lanUrls(server, !USE_HTTP),
+    getUrls: () => (HOSTED ? [PUBLIC_URL] : lanUrls(server, !USE_HTTP)),
     log: (m) => console.log(`[signal] ${m}`),
+    trustProxy: TRUST_PROXY,
   });
   server.listen(PORT, HOST, () => {
     const proto = USE_HTTP ? 'http' : 'https';
     console.log(`\n  NULL-TECH is running\n`);
+    if (HOSTED) {
+      console.log(`  Online at:    ${PUBLIC_URL}  (TLS by the proxy, listening on :${PORT})\n`);
+      return;
+    }
     console.log(`  On this PC:   ${proto}://localhost:${PORT}`);
     for (const url of lanUrls(server, !USE_HTTP)) console.log(`  On the phone: ${url}`);
     if (certKind === 'self-signed') {

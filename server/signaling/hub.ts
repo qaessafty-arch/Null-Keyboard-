@@ -31,6 +31,8 @@ interface Room {
 }
 
 interface PeerState {
+  /** Who is behind the socket (client IP when known). Limits apply per client, not per socket. */
+  client: string;
   role: 'host' | 'phone' | null;
   code: string | null;
   joinAttempts: number[];
@@ -45,6 +47,12 @@ export interface HubOptions {
   /** A host that disconnects can resume its room within this window. */
   hostGraceMs?: number;
   maxJoinAttemptsPerMinute?: number;
+  /** Join attempts per client (all its sockets together) per minute. */
+  maxJoinAttemptsPerClientPerMinute?: number;
+  /** Rooms (pairing sessions) per client at once. */
+  maxRoomsPerClient?: number;
+  /** Rooms in total, to bound memory on a public server. */
+  maxRooms?: number;
   maxMessagesPer10s?: number;
   /** LAN URLs the phone can use to reach this server (for the QR code). */
   getUrls?: () => string[];
@@ -63,6 +71,7 @@ const defaultToken = () => randomBytes(16).toString('hex');
 export class SignalingHub {
   private rooms = new Map<string, Room>();
   private peers = new Map<Peer, PeerState>();
+  private clientJoins = new Map<string, number[]>();
   private readonly now: () => number;
   private readonly opts: Required<Omit<HubOptions, 'now'>>;
 
@@ -72,6 +81,9 @@ export class SignalingHub {
       roomTtlMs: options.roomTtlMs ?? 15 * 60_000,
       hostGraceMs: options.hostGraceMs ?? 60_000,
       maxJoinAttemptsPerMinute: options.maxJoinAttemptsPerMinute ?? 8,
+      maxJoinAttemptsPerClientPerMinute: options.maxJoinAttemptsPerClientPerMinute ?? 20,
+      maxRoomsPerClient: options.maxRoomsPerClient ?? 4,
+      maxRooms: options.maxRooms ?? 5000,
       maxMessagesPer10s: options.maxMessagesPer10s ?? 400,
       getUrls: options.getUrls ?? (() => []),
       randomCode: options.randomCode ?? defaultCode,
@@ -84,8 +96,16 @@ export class SignalingHub {
     return this.rooms.size;
   }
 
-  connect(peer: Peer): void {
-    this.peers.set(peer, { role: null, code: null, joinAttempts: [], msgWindowStart: this.now(), msgCount: 0 });
+  /** @param client identifies the remote client (IP); sockets without one share a per-socket key. */
+  connect(peer: Peer, client?: string): void {
+    this.peers.set(peer, {
+      client: client ?? `socket:${this.peers.size}:${this.now()}:${Math.random()}`,
+      role: null,
+      code: null,
+      joinAttempts: [],
+      msgWindowStart: this.now(),
+      msgCount: 0,
+    });
   }
 
   disconnect(peer: Peer): void {
@@ -131,6 +151,9 @@ export class SignalingHub {
   /** Drop expired rooms. Call periodically. */
   sweep(): void {
     const now = this.now();
+    for (const [client, times] of this.clientJoins) {
+      if (times.every((t) => now - t >= 60_000)) this.clientJoins.delete(client);
+    }
     for (const room of [...this.rooms.values()]) {
       const hostGone = room.host === null && room.hostGoneAt !== null && now - room.hostGoneAt > this.opts.hostGraceMs;
       const idle = room.phone === null && now - room.lastActive > this.opts.roomTtlMs;
@@ -181,8 +204,18 @@ export class SignalingHub {
 
   private createRoom(peer: Peer, st: PeerState): void {
     this.leave(peer, st);
+    let owned = 0;
+    for (const r of this.rooms.values()) if (r.host && this.peers.get(r.host)?.client === st.client) owned++;
+    if (owned >= this.opts.maxRoomsPerClient || this.rooms.size >= this.opts.maxRooms) {
+      peer.send({ t: 'error', code: 'rate-limited', message: 'Too many pairing sessions — try again in a few minutes' });
+      return;
+    }
     let code = this.opts.randomCode();
     for (let i = 0; this.rooms.has(code) && i < 20; i++) code = this.opts.randomCode();
+    if (this.rooms.has(code)) {
+      peer.send({ t: 'error', code: 'rate-limited', message: 'Server busy — try again' });
+      return;
+    }
     const now = this.now();
     const room: Room = {
       code,
@@ -238,11 +271,17 @@ export class SignalingHub {
   private join(peer: Peer, st: PeerState, code: string, token?: string): void {
     const now = this.now();
     st.joinAttempts = st.joinAttempts.filter((t) => now - t < 60_000);
-    if (st.joinAttempts.length >= this.opts.maxJoinAttemptsPerMinute) {
+    const clientJoins = (this.clientJoins.get(st.client) ?? []).filter((t) => now - t < 60_000);
+    if (
+      st.joinAttempts.length >= this.opts.maxJoinAttemptsPerMinute ||
+      clientJoins.length >= this.opts.maxJoinAttemptsPerClientPerMinute
+    ) {
       peer.send({ t: 'error', code: 'rate-limited', message: 'Too many attempts — wait a minute' });
       return;
     }
     st.joinAttempts.push(now);
+    clientJoins.push(now);
+    this.clientJoins.set(st.client, clientJoins);
 
     const room = this.rooms.get(code);
     if (!room) {
