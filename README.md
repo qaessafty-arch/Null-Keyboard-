@@ -119,7 +119,7 @@ NULL-TECH runs on the **Cloudflare Workers free plan**: no credit card, a real H
    - **Production branch:** `ccr-b9a5f49f-5ewgay`
    - **Build command:** `npm run build`
    - **Deploy command:** `npx wrangler deploy` (the default)
-4. After the first build (about 3 minutes), your address is `https://null-tech.<your-subdomain>.workers.dev`. Open it on the Surface → **Connect** → scan the QR code with the phone. Both devices must be **on the same Wi-Fi**.
+4. After the first build (about 3 minutes), your address is `https://null-keyboard.<your-subdomain>.workers.dev`. Open it on the Surface → **Connect** → scan the QR code with the phone. Both devices must be **on the same Wi-Fi**.
 
 Every push to that branch redeploys automatically. From a terminal you can also run `npx wrangler login` and then `npm run deploy`.
 
