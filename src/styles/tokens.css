@@ -1,0 +1,52 @@
+/* NEO TYPE design tokens. The app is dark by design (laser light reads only on dark). */
+:root {
+  color-scheme: dark;
+
+  --bg-0: #080a12;
+  --bg-1: #101525;
+  --panel: #141b2b;
+  --panel-2: #182033;
+
+  --laser: #ff174f;
+  --pink: #ff3d81;
+  --cyan: #00e5ff;
+  --blue: #438bff;
+
+  --text: #f4f7ff;
+  --text-2: #8792a8;
+  --text-3: #5b6479;
+
+  --ok: #36e69a;
+  --warn: #ffb547;
+  --err: #ff4568;
+
+  --line: rgb(135 146 168 / 0.14);
+  --line-strong: rgb(135 146 168 / 0.26);
+
+  --font-ui: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --font-display: 'Segoe UI Variable Display', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --r-s: 6px;
+  --r-m: 10px;
+  --r-l: 16px;
+  --r-xl: 22px;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --topbar-h: 56px;
+  --statusbar-h: 34px;
+}
+
+:root[data-theme='laser'] {
+  --accent: var(--laser);
+  --accent-2: var(--pink);
+  --accent-rgb: 255 23 79;
+  --accent-2-rgb: 255 61 129;
+}
+
+:root[data-theme='holo'] {
+  --accent: var(--cyan);
+  --accent-2: var(--laser);
+  --accent-rgb: 0 229 255;
+  --accent-2-rgb: 255 23 79;
+}

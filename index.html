@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en" data-theme="laser">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#080A12" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="NEO TYPE — dual-input laser-holographic virtual keyboard (touch + air)." />
+    <link rel="icon" type="image/svg+xml" href="/icons/neo-type.svg" />
+    <title>NEO TYPE</title>
+    <script>
+      // Apply the saved theme before first paint to avoid a flash.
+      try {
+        var s = JSON.parse(localStorage.getItem('neo-type:settings') || 'null');
+        var t = s && s.state && s.state.general && s.state.general.theme;
+        if (t === 'laser' || t === 'holo') document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>NEO TYPE needs JavaScript.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
