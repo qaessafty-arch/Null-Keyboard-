@@ -1,4 +1,4 @@
-import type { CameraLinkState } from '@/stores/appStore';
+import type { CameraLinkState } from '@/stores/linkStore';
 import type { DotTone } from '@/components/common/Controls';
 
 export const CAMERA_LINK_LABEL: Record<CameraLinkState, string> = {

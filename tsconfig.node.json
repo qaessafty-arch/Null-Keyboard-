@@ -5,7 +5,7 @@
     "lib": ["ES2023", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["node"],
+    "types": ["node", "vitest/globals"],
     "strict": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
@@ -14,5 +14,5 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "tests/e2e"]
+  "include": ["vite.config.ts", "playwright.config.ts", "tests/e2e", "server", "src/communication/signaling/protocol.ts", "tests/unit/signalingHub.test.ts"]
 }

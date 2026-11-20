@@ -1,3 +1,4 @@
+import { useLinkStore } from '@/stores/linkStore';
 import { Link, navigate } from '@/app/Router';
 import { Logo } from '@/components/common/Logo';
 import { IconButton, StatusDot } from '@/components/common/Controls';
@@ -18,7 +19,8 @@ const NAV: Array<{ to: string; label: string; matches?: string[] }> = [
 
 export function TopBar() {
   const mode = useAppStore((s) => s.mode);
-  const cameraLink = useAppStore((s) => s.cameraLink);
+  const cameraLink = useLinkStore((s) => s.state);
+  const live = useLinkStore((s) => s.state === 'connected' && s.stream !== null);
   const theme = useSettings((s) => s.general.theme);
   const update = useSettings((s) => s.update);
   const fullscreen = useFullscreen();
@@ -48,6 +50,11 @@ export function TopBar() {
         >
           <StatusDot tone={CAMERA_LINK_TONE[cameraLink]} pulse={cameraLink === 'connecting'} />
           <span className="pill__label">{CAMERA_LINK_LABEL[cameraLink]}</span>
+          {live && (
+            <span className="live-badge" data-testid="camera-live" title="The phone camera is streaming to this Surface">
+              ● CAM
+            </span>
+          )}
         </button>
         <span className="pill pill--mode" data-testid="active-mode">
           <span className="eyebrow">Mode</span>

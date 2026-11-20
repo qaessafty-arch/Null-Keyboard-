@@ -1,5 +1,7 @@
 # NEO TYPE — Development Plan
 
+> Status: **v1.0.0 — all stages implemented and automatically verified.** Hardware checks on the Surface Pro 7 and S25 Ultra are still pending (marked ⬜).
+
 Living document. Updated at the end of every stage. Status markers:
 ✅ done and verified · 🟡 partial (see notes) · ⬜ not started.
 
@@ -116,45 +118,49 @@ composition roots and should not live inside reusable `components/`.
 - ✅ Responsive: container-query sizing, landscape + portrait
 - Manual on Surface: visual check at 2736×1824 @ 200 %, portrait rotation
 
-### Stage 2 — Functional Touch Mode 🟡 (pulled forward so keys are not dead)
-- ✅ Full QWERTY layout: letters, digits, punctuation, Backspace, Enter, Space, Tab, Esc, Shift×2, Caps, Ctrl, Alt, Fn, arrows; Fn layer (F1–F12, Home/End/PgUp/PgDn, Delete)
-- ✅ Unified `KeyboardEngine` with `KeyboardInputEvent {key, source, action, timestamp, confidence, metadata}`
-- ✅ Pointer Events; source = TOUCH / PEN / MOUSE from `pointerType`; multi-pointer
-- ✅ Modifiers: hold-chord or tap-to-latch (one-shot) Shift/Ctrl/Alt/Fn; Caps Lock toggle
-- ✅ Auto-repeat on long press (Backspace, arrows, characters), duplicate suppression, stuck-key release on blur / visibility change / pointer cancel
-- ✅ Editor: live typing, caret + selection, arrows (Shift extends), Home/End, undo/redo (Ctrl+Z / Ctrl+Y), Ctrl+A, Ctrl+C/X/V, copy, clear with confirmation, TXT download, char + word counters
-- ✅ Key size / spacing / opacity settings, sound feedback (WebAudio synth, no assets)
-- ⬜ Manual on Surface: finger, Surface Pen, trackpad; portrait/landscape
-- ⬜ Long-press alternates (accented characters) — deferred, not needed for v1
+### Stage 2 — Functional Touch Mode ✅
+- ✅ Full QWERTY + Fn layer, unified `KeyboardEngine`, Pointer Events (TOUCH / PEN / MOUSE), multi-pointer chords
+- ✅ Modifiers (hold-chord / tap-latch), Caps, auto-repeat, duplicate suppression, stuck-key recovery
+- ✅ Editor: caret, selection, undo/redo, clipboard, TXT, counters; key size/spacing/opacity; sound
+- ⬜ Manual on Surface: finger, Surface Pen, trackpad feel
+- Deferred: long-press alternates (accents)
 
-### Stage 3 — Phone camera connection ⬜
-- `server/` Node signaling (`ws`), room codes (6 chars, crypto random, TTL), message schema validation + size cap
-- Phone page `#/camera?room=…`: rear camera (`facingMode: environment`), resolution presets, permission-denied UI
-- QR code on Surface (small QR encoder, no network service)
-- Connection state machine: waiting → connecting → permission-required → connected → reconnecting → disconnected / camera-unavailable
-- Quality indicator from `RTCPeerConnection.getStats()` (fps, RTT, packet loss) — real stats only
-- HTTPS dev setup with `mkcert`, documented
-- Manual: S25 Ultra → Surface on same Wi-Fi
+### Stage 3 — Phone camera connection ✅
+- ✅ `server/`: HTTPS static server (`npm start`), `/signal` WebSocket hub — 6-char crypto-random codes, host/phone tokens for resume, strict schema validation, 16 KB cap, join rate-limit, flood limit, same-origin upgrade check, idle expiry, heartbeat
+- ✅ Self-signed cert with LAN-IP SANs (auto), or mkcert certs from `certs/`
+- ✅ Phone page `#/camera`: rear camera, lens switching, 480/720/1080p, wake lock, background recovery, permission/HTTPS errors
+- ✅ Surface `HostLink`: local QR (uqr), state machine (waiting → connecting → permission-required → connected → reconnecting → disconnected / unavailable), real `getStats()` quality
+- ✅ LAN bitrate hint (`x-google-start/min-bitrate`) — without it the stream sat at 320×180 (found in testing)
+- ✅ e2e: pairing, wrong code, reconnection (both sides), disconnect stops the phone camera
 
-### Stage 4 — Computer vision ⬜
-- `@mediapipe/tasks-vision` HandLandmarker (2 hands, 21 landmarks), model + wasm served locally (offline/PWA)
-- Frame pump via `requestVideoFrameCallback`, detection decoupled from rendering, worker if measured faster
-- One-Euro filter smoothing, handedness, tracking-loss hold
-- Debug overlay (landmarks on preview), detection FPS + processing ms in Performance
+### Stage 4 — Computer vision ✅
+- ✅ `@mediapipe/tasks-vision` 1.2.3 HandLandmarker, 2 hands × 21 landmarks; wasm + model served locally (`scripts/setup-assets.mjs`), remote model fallback
+- ✅ Module **Web Worker** (module wasm build) with ImageBitmap transfer and drop-when-busy backpressure; main-thread fallback; GPU delegate with CPU fallback + setting
+- ✅ `requestVideoFrameCallback` pump throttled to 15/24/30 Hz and quality frame stride
+- ✅ One Euro smoothing, nearest-wrist identity, tracking-loss bridging (180 ms) and release
+- ✅ Landmark overlay, detection rate / inference / frame→result metrics
+- ✅ e2e: both hands detected (~95 %) from the phone stream in the worker
 
-### Stage 5 — Calibration & Air Mode ⬜
-- Wizard: positioning → 4-corner workspace → homography → neutral hands → press samples → test
-- Press FSM per fingertip: HOVER → ARMED → PRESSED → RELEASED with velocity + displacement thresholds, debounce, cooldown, confidence gate
-- Air events into the same engine (`source: AIR`, `confidence`)
-- Calibration profile in IndexedDB
+### Stage 5 — Calibration & Air Mode ✅
+- ✅ 5-step wizard: live positioning checks (hands, size, framing, luminance), draggable/fingertip corner capture with projected key grid, 3 s rest capture, prompted press capture (direction, depth, separation, accuracy), live test
+- ✅ Homography + key hit-testing; hand-relative fingertip features (isotropic, incl. z)
+- ✅ `PressDetector`: motion (hysteresis, dominance, confidence gate, debounce, cooldown, look-back key, adaptive baseline) and dwell fallback
+- ✅ `AirInput` → shared `KeyboardEngine` (`source: 'AIR'`, confidence), hover highlights, fingertips on keyboard, ripples, gesture readout, air latency metric
+- ✅ Profile in IndexedDB; status in top/status bars and Settings
+- ✅ e2e: calibration completes, dwell typing produces `AIR` key events in the editor
+- ⬜ Motion presses with real hands (cannot be produced by a still image) — unit-tested only
 
-### Stage 6 — Optimization ⬜
-- Auto quality step-down on sustained low FPS, camera resolution presets
-- Memory/leak checks (Three.js, video tracks), reconnection tests
+### Stage 6 — Optimization ✅
+- ✅ Automatic quality step-down (FPS < 40 for 6 s), tracking Hz, frame stride, GPU/CPU choice
+- ✅ Tracking runs only while Air Mode / calibration / connect preview need it; renderer and GL contexts disposed; tracks stopped on disconnect
+- ✅ Reconnection verified in e2e
+- ⬜ Long-session memory profiling on the Surface
 
-### Stage 7 — Finalization ⬜
-- PWA (manifest + service worker caching app shell, model, wasm)
-- User guide, limitations report, full test pass
+### Stage 7 — Finalization ✅
+- ✅ PWA (manifest, icons, precached shell, runtime-cached vision assets); offline e2e
+- ✅ Editor draft autosave (IndexedDB)
+- ✅ README, `docs/USER_GUIDE.md`, `docs/LIMITATIONS.md`
+- ✅ Full automated test pass (below)
 
 ## 4. Verification log
 
@@ -166,9 +172,18 @@ composition roots and should not live inside reusable `components/`.
 | 2026-11-20 | 0–2 | Playwright e2e in headless Chromium (mouse, CDP touch + pen, console errors, portrait overflow, persistence) | ✅ 11/11 |
 | 2026-11-20 | 1 | Visual review via screenshots at 1368×912 and 912×1368 (Laser + Holo, Air panel, hero) | ✅ after fixes below |
 | — | 1–2 | On-device check on Surface Pro 7 (touch, pen, trackpad, real GPU FPS) | ⬜ pending, needs hardware |
+| 2026-11-20 | 3–7 | `npm test` | ✅ 104/104 (engine, text, hub, homography, geometry, filters, press detector) |
+| 2026-11-20 | 3–7 | `npm run test:e2e` | ✅ 19/19 (13 UI + 6 real camera pipeline with MediaPipe test image) |
+| 2026-11-20 | 3–7 | Production server (`npm start`) with CSP: pairing + GPU worker tracking | ✅ 2 hands, 0 console errors |
+| — | 3–5 | S25 Ultra over Wi-Fi, real hands, motion presses | ⬜ pending, needs hardware |
 
 ### Bugs found and fixed during verification
 - Page overflowed horizontally in portrait: the app grid's implicit column grew to the top bar's min-content. Fixed with `grid-template-columns: minmax(0, 1fr)`.
 - Air Mode panel pushed the keyboard below the fold at 1368×912. The workspace now fills the viewport exactly and the panel scrolls internally.
 - WebGL hero/surface drew opaque dark shapes and an almost invisible grid. The additive shaders wrote alpha = 1 (and non-premultiplied blending squared the alpha). Shaders now output premultiplied, brightness-matched alpha, with `premultipliedAlpha: true`.
 - The main bundle was 829 KB. Three.js is now lazy-loaded (main bundle 293 KB), and Low quality never downloads it.
+- (Stage 3) The WebRTC stream stayed at 320×180: bandwidth estimation starts at ~300 kbit/s and doesn't ramp on calm video, and `contentHint='motion'` traded resolution for frame rate. Fixed with a LAN start/min bitrate hint and the default content hint → 1280×720 from the first second.
+- (Stage 3) A Surface reload left the phone waiting forever: the hub told the host the phone was present but never told the phone the host was back. Both sides are now notified, so the phone re-offers.
+- (Stage 3) When the Surface ended the session, the phone kept its camera on. It now stops the camera and wake lock; restarting opens a fresh socket.
+- (Stage 4) Handedness was inverted: the assumption that MediaPipe expects mirrored frames was wrong for un-mirrored `getUserMedia` frames (verified with MediaPipe's right-hands test image).
+- (Stage 4) MediaPipe's wasm logs INFO lines through `console.error`; the worker now downgrades glog INFO/W lines to debug.

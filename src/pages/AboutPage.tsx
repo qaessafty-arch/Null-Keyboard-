@@ -34,8 +34,8 @@ export function AboutPage() {
       <header className="page__head about__head">
         <Logo />
         <p className="muted page__lead">
-          Version {__APP_VERSION__} · Stage 1 visual foundation + functional Touch Mode. Air Mode (phone camera, hand
-          tracking, calibration) is in development.
+          Version {__APP_VERSION__}. Touch Mode and Air Mode (phone camera over WebRTC, MediaPipe hand tracking, calibration)
+          share one keyboard engine.
         </p>
       </header>
 
@@ -64,7 +64,11 @@ export function AboutPage() {
             engine is built so a future native companion app can add this.
           </li>
           <li>Touch Mode works with finger, Surface Pen, mouse and trackpad through one Pointer Events path.</li>
-          <li>Air Mode will use one phone camera. Single cameras don't measure depth, so press detection relies on calibrated motion.</li>
+          <li>
+            Air Mode uses one phone camera. A single camera can't measure true depth, so presses are recognized from calibrated
+            fingertip motion (or by dwelling on a key).
+          </li>
+          <li>Air typing is slower and less precise than a physical keyboard; it is best for short text.</li>
         </ul>
       </section>
     </div>

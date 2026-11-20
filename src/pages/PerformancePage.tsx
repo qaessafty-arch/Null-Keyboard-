@@ -1,9 +1,11 @@
+import { useLinkStore } from '@/stores/linkStore';
 import { useEffect, useRef } from 'react';
 import { useFrameStats, useTicker } from '@/hooks/useFrameStats';
-import { frameMeter, inputLatency, longTasks, webglRenderCost } from '@/engine/performance/metrics';
+import { airLatency, frameMeter, inputLatency, longTasks, webglRenderCost } from '@/engine/performance/metrics';
+import { useTrackingStore } from '@/stores/trackingStore';
+import { Toggle } from '@/components/common/Controls';
 import { Segmented } from '@/components/common/Controls';
 import { useSettings, type QualityMode } from '@/stores/settingsStore';
-import { useAppStore } from '@/stores/appStore';
 import { getHeapMb } from '@/utils/systemInfo';
 import { QUALITY_PROFILES } from '@/engine/performance/quality';
 import { CAMERA_LINK_LABEL } from '@/components/dashboard/status';
@@ -82,7 +84,10 @@ export function PerformancePage() {
   useTicker(500);
   const quality = useSettings((s) => s.performance.quality);
   const update = useSettings((s) => s.update);
-  const cameraLink = useAppStore((s) => s.cameraLink);
+  const cameraLink = useLinkStore((s) => s.state);
+  const link = useLinkStore((s) => s.stats);
+  const tracking = useTrackingStore();
+  const autoQuality = useSettings((s) => s.performance.autoQuality);
   const heap = getHeapMb();
   const profile = QUALITY_PROFILES[quality];
 
@@ -141,10 +146,35 @@ export function PerformancePage() {
       <section className="panel">
         <h2 className="panel__title">Vision & camera</h2>
         <div className="metrics">
-          <Metric label="Hand detection FPS" value="—" sub="not running (Stage 4)" />
-          <Metric label="Detection time" value="—" sub="not running (Stage 4)" />
-          <Metric label="Camera resolution" value="—" sub="no camera stream" />
-          <Metric label="Connection" value="—" sub={CAMERA_LINK_LABEL[cameraLink]} />
+          <Metric
+            label="Hand detection"
+            value={tracking.status === 'running' ? f(tracking.detectFps, 0, '/s') : '—'}
+            sub={
+              tracking.status === 'running'
+                ? `${tracking.backend === 'worker' ? 'Web Worker' : 'main thread'} · ${tracking.delegate}`
+                : tracking.status === 'loading'
+                  ? 'loading model…'
+                  : 'not running (Air Mode / calibration only)'
+            }
+          />
+          <Metric label="Inference" value={tracking.status === 'running' ? f(tracking.detectMs, 1, ' ms') : '—'} sub="MediaPipe per frame" />
+          <Metric
+            label="Frame → result"
+            value={tracking.status === 'running' ? f(tracking.pipelineMs, 1, ' ms') : '—'}
+            sub="capture + transfer + inference"
+          />
+          <Metric label="Air press latency" value={f(airLatency.mean(), 0, ' ms')} sub={`frame → key event · ${airLatency.count} presses`} />
+          <Metric
+            label="Camera"
+            value={link.width && link.height ? `${link.width}×${link.height}` : '—'}
+            sub={link.fps !== null ? `${link.fps.toFixed(0)} fps received` : 'no stream'}
+          />
+          <Metric
+            label="Connection"
+            value={link.quality === 'unknown' ? '—' : link.quality}
+            sub={link.rttMs !== null ? `RTT ${link.rttMs.toFixed(0)} ms · loss ${f(link.lossPct, 1, ' %')}` : CAMERA_LINK_LABEL[cameraLink]}
+            tone={link.quality === 'good' ? 'ok' : link.quality === 'fair' ? 'warn' : link.quality === 'poor' ? 'err' : undefined}
+          />
         </div>
       </section>
 
@@ -165,6 +195,12 @@ export function PerformancePage() {
           {quality === 'balanced' && 'Recommended for Surface Pro 7: WebGL at 1.25× pixel ratio, 720p tracking target.'}
           {quality === 'low' && 'WebGL off (CSS fallback), reduced glow, 480p tracking and every-other-frame detection.'}
         </p>
+        <Toggle
+          label="Adapt automatically"
+          hint="Steps quality down one level if rendering stays below 40 FPS for 6 seconds."
+          checked={autoQuality}
+          onChange={(v) => update('performance', { autoQuality: v })}
+        />
         {heap && (
           <p className="field__hint mono">
             JS heap: {heap.used.toFixed(0)} MB used of {heap.limit.toFixed(0)} MB limit

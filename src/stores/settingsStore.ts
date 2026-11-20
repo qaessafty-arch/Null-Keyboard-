@@ -25,6 +25,12 @@ export interface Settings {
     /** 0–1: minimum hand-detection confidence. */
     minConfidence: number;
     mirrored: boolean;
+    /** auto = motion if press calibration exists, otherwise dwell. */
+    pressMethod: 'auto' | 'motion' | 'dwell';
+    /** Hold time for dwell presses. */
+    dwellMs: number;
+    /** Show the small camera preview in the Air Mode panel. */
+    showPreview: boolean;
   };
   touch: {
     /** Multiplier on the responsive key size. */
@@ -42,8 +48,12 @@ export interface Settings {
     quality: QualityMode;
     /** 0–100 scales glow and WebGL effect intensity. */
     effects: number;
-    /** Hand detection frequency target in Hz (Stage 4). */
+    /** Hand detection frequency target in Hz. */
     trackingHz: 15 | 24 | 30;
+    /** MediaPipe delegate. GPU is much faster; CPU is the fallback for flaky drivers. */
+    inference: 'gpu' | 'cpu';
+    /** Step quality down automatically on sustained low FPS. */
+    autoQuality: boolean;
     cameraResolution: CameraResolution;
   };
 }
@@ -57,6 +67,9 @@ export const DEFAULT_SETTINGS: Settings = {
     debounceMs: 120,
     minConfidence: 0.6,
     mirrored: false,
+    pressMethod: 'auto',
+    dwellMs: 650,
+    showPreview: true,
   },
   touch: {
     keySize: 1,
@@ -67,7 +80,7 @@ export const DEFAULT_SETTINGS: Settings = {
     longPressRepeat: true,
     orientation: 'auto',
   },
-  performance: { quality: 'balanced', effects: 70, trackingHz: 30, cameraResolution: '720p' },
+  performance: { quality: 'balanced', effects: 70, trackingHz: 30, inference: 'gpu', autoQuality: true, cameraResolution: '720p' },
 };
 
 type Section = keyof Settings;

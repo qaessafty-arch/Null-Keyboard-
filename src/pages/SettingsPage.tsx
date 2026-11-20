@@ -6,16 +6,20 @@ import { useSettings, type CameraResolution, type Orientation, type QualityMode,
 import { LAYOUTS } from '@/features/keyboard-engine/layouts/qwerty';
 import { useFullscreen } from '@/hooks/useFullscreen';
 import { notify } from '@/stores/noticeStore';
+import { navigate } from '@/app/Router';
+import { calibrationLevel, useCalibration } from '@/engine/calibration/profile';
 
 type Tab = 'general' | 'air' | 'touch' | 'performance' | 'privacy';
 
-const AIR_NOTE = 'Stored now; used by the Air Mode tracker when it ships (Stage 4–5).';
 
 export function SettingsPage() {
   const s = useSettings();
   const [tab, setTab] = useState<Tab>('general');
   const [confirmReset, setConfirmReset] = useState(false);
   const fullscreen = useFullscreen();
+  const profile = useCalibration((st) => st.profile);
+  const clearCalibration = useCalibration((st) => st.clear);
+  const calLevel = calibrationLevel(profile);
 
   return (
     <div className="page page--narrow">
@@ -146,12 +150,30 @@ export function SettingsPage() {
 
       {tab === 'air' && (
         <section className="panel settings" aria-label="Air Mode settings">
-          <p className="settings__note">
-            <Icon name="info" size={16} /> {AIR_NOTE}
-          </p>
+          <SelectField<'auto' | 'motion' | 'dwell'>
+            label="Press method"
+            hint="Automatic uses motion when press calibration exists, otherwise dwell. Motion: tap down like on a real keyboard. Dwell: hold a fingertip still on a key."
+            value={s.air.pressMethod}
+            onChange={(v) => s.update('air', { pressMethod: v })}
+            options={[
+              { value: 'auto', label: 'Automatic' },
+              { value: 'motion', label: 'Motion' },
+              { value: 'dwell', label: 'Dwell' },
+            ]}
+          />
+          <Slider
+            label="Dwell time"
+            hint="How long a fingertip must stay on a key to type it (dwell method)."
+            value={s.air.dwellMs}
+            min={300}
+            max={1500}
+            step={50}
+            format={(v) => `${v} ms`}
+            onChange={(v) => s.update('air', { dwellMs: v })}
+          />
           <SelectField
-            label="Camera"
-            hint="The phone's rear camera gives the best view of your hands."
+            label="Preferred camera"
+            hint="The phone's rear camera gives the best view of your hands. You can switch lenses on the phone page."
             value={s.air.cameraFacing}
             onChange={(v) => s.update('air', { cameraFacing: v })}
             options={[
@@ -168,7 +190,7 @@ export function SettingsPage() {
           />
           <Slider
             label="Activation threshold"
-            hint="How far a fingertip must travel downward to count as a press."
+            hint="Share of your calibrated press depth a fingertip must travel to count as a press. Raise it if keys trigger by accident."
             value={s.air.activationThreshold}
             min={0.1}
             max={1}
@@ -212,12 +234,31 @@ export function SettingsPage() {
           />
           <div className="field field--row">
             <div className="field__text">
-              <span>Recalibrate</span>
-              <p className="field__hint">Available once a phone camera is connected.</p>
+              <span>Calibration</span>
+              <p className="field__hint">
+                {calLevel === 'full'
+                  ? `Saved ${new Date(profile!.createdAt).toLocaleString()} · motion presses`
+                  : calLevel === 'workspace'
+                    ? `Saved ${new Date(profile!.createdAt).toLocaleString()} · dwell only`
+                    : 'Not calibrated yet.'}
+              </p>
             </div>
-            <Button icon="target" disabled>
-              Recalibrate
-            </Button>
+            <div className="page__actions">
+              {profile && (
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    void clearCalibration();
+                    notify('Calibration deleted', 'info');
+                  }}
+                >
+                  Delete
+                </Button>
+              )}
+              <Button icon="target" onClick={() => navigate('/calibrate')}>
+                {profile ? 'Recalibrate' : 'Calibrate'}
+              </Button>
+            </div>
           </div>
         </section>
       )}
@@ -250,13 +291,23 @@ export function SettingsPage() {
           />
           <SelectField
             label="Tracking frequency"
-            hint={AIR_NOTE}
+            hint="How often hand detection runs. Lower values save power and CPU."
             value={String(s.performance.trackingHz)}
             onChange={(v) => s.update('performance', { trackingHz: Number(v) as 15 | 24 | 30 })}
             options={[
               { value: '15', label: '15 Hz' },
               { value: '24', label: '24 Hz' },
               { value: '30', label: '30 Hz' },
+            ]}
+          />
+          <SelectField<'gpu' | 'cpu'>
+            label="Hand tracking runs on"
+            hint="GPU is much faster. Switch to CPU only if tracking fails to start or the graphics driver misbehaves."
+            value={s.performance.inference}
+            onChange={(v) => s.update('performance', { inference: v })}
+            options={[
+              { value: 'gpu', label: 'GPU (recommended)' },
+              { value: 'cpu', label: 'CPU' },
             ]}
           />
           <SelectField<CameraResolution>
@@ -287,7 +338,8 @@ export function SettingsPage() {
             <li>The signaling server only relays connection setup messages (no video) and validates every message.</li>
           </ul>
           <p className="field__hint">
-            Current build: no camera access is requested anywhere — Air Mode pairing is not implemented yet.
+            The phone page asks for the camera only after you tap Start camera. Disconnect from the Air Mode panel or the Connect page at any
+            time; the phone stops its camera when the session ends.
           </p>
         </section>
       )}

@@ -89,6 +89,9 @@ export const frameMeter = new FrameMeter();
 /** Time from a pointer event's timestamp to the start of the next animation frame. */
 export const inputLatency = new RollingStat(120);
 
+/** Air Mode: camera frame submitted → key event emitted (ms). */
+export const airLatency = new RollingStat(120);
+
 /** CPU time spent inside `renderer.render()` for the WebGL laser surface. */
 export const webglRenderCost = new RollingStat(240);
 

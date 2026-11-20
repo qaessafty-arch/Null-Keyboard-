@@ -22,5 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "tests/unit", "tests/integration", "tests/setup.ts"]
+  "include": ["src", "tests/unit", "tests/integration", "tests/setup.ts"],
+  "exclude": ["tests/unit/signalingHub.test.ts"]
 }

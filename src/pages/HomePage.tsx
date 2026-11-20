@@ -5,6 +5,7 @@ import { Icon } from '@/components/common/Icon';
 import { useAppStore } from '@/stores/appStore';
 import { useSettings } from '@/stores/settingsStore';
 import { QUALITY_PROFILES } from '@/engine/performance/quality';
+import { useCalibration } from '@/engine/calibration/profile';
 
 const HeroScene = lazy(() => import('@/rendering/three/HeroScene').then((m) => ({ default: m.HeroScene })));
 
@@ -19,6 +20,7 @@ function StaticHero() {
 export function HomePage() {
   const setMode = useAppStore((s) => s.setMode);
   const heroDetail = useSettings((s) => QUALITY_PROFILES[s.performance.quality].heroDetail);
+  const airReady = useCalibration((s) => s.profile !== null);
   const go = (mode: 'touch' | 'air') => {
     setMode(mode);
     navigate(`/${mode}`);
@@ -39,8 +41,8 @@ export function HomePage() {
           Type on <span className="home__title-accent">light</span>.
         </h1>
         <p className="home__lead">
-          NEO TYPE is a virtual keyboard with two inputs and one engine: touch the screen, or (coming soon) type in the
-          air above your desk while your phone's camera watches your hands.
+          NEO TYPE is a virtual keyboard with two inputs and one engine: touch the screen, or type in the air above your desk
+          while your phone's camera watches your hands.
         </p>
 
         <div className="home__modes">
@@ -64,7 +66,7 @@ export function HomePage() {
               <span className="mode-card__title">Air Mode</span>
               <span className="mode-card__desc">A phone camera tracks your fingers over an invisible keyboard.</span>
             </span>
-            <span className="mode-card__state">In development</span>
+            <span className={`mode-card__state${airReady ? ' mode-card__state--ok' : ''}`}>{airReady ? 'Calibrated' : 'Needs phone'}</span>
             <Icon name="arrowRight" className="mode-card__arrow" />
           </button>
         </div>

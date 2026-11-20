@@ -1,5 +1,6 @@
 import { lazy, Suspense, useRef, type CSSProperties } from 'react';
 import { Key } from './Key';
+import { AirFingertips } from './AirFingertips';
 
 // Three.js is loaded on demand so the keyboard is interactive before WebGL arrives,
 // and LOW quality never downloads it.
@@ -14,9 +15,11 @@ import './keyboard.css';
 interface Props {
   /** Accept pointer input (Touch Mode). Air Mode drives the same keys via the engine. */
   interactive?: boolean;
+  /** Draw tracked fingertips over the keys (Air Mode). */
+  showAirTips?: boolean;
 }
 
-export function VirtualKeyboard({ interactive = true }: Props) {
+export function VirtualKeyboard({ interactive = true, showAirTips = false }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const layoutId = useSettings((s) => s.general.layout);
   const touch = useSettings((s) => s.touch);
@@ -59,6 +62,7 @@ export function VirtualKeyboard({ interactive = true }: Props) {
               ))}
             </div>
           ))}
+          {showAirTips && <AirFingertips />}
         </div>
       </div>
     </div>

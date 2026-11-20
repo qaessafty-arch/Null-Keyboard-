@@ -20,7 +20,13 @@ const editor = (page: Page) => page.getByTestId('editor');
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    // Software-rendered CI GPUs run below 40 FPS; keep quality fixed for deterministic tests.
+    localStorage.setItem('neo-type:settings', JSON.stringify({ state: { performance: { autoQuality: false } }, version: 1 }));
+  });
+  await page.reload();
 });
 
 test('home renders the 3D hero without console errors', async ({ page }) => {
@@ -91,12 +97,42 @@ test('switching Touch ⇄ Air keeps the text', async ({ page }) => {
   await expect(editor(page)).toHaveValue('neo');
 });
 
-test('Air Mode never claims a camera connection', async ({ page }) => {
+test('without a phone, Air Mode never claims a camera or tracking', async ({ page }) => {
   await page.goto('/#/air');
   await expect(page.getByTestId('camera-link-pill')).toContainText('No phone linked');
+  await expect(page.getByTestId('air-panel')).toContainText('Waiting for camera');
+  await expect(page.getByTestId('status-tracking')).toHaveText('no camera');
   await page.goto('/#/connect');
   await expect(page.getByTestId('connect-state')).toHaveText('No phone linked');
-  await expect(page.getByRole('button', { name: /generate pairing code/i })).toBeDisabled();
+  await page.getByTestId('start-pairing').click();
+  await expect(page.getByTestId('connect-state')).toHaveText('Waiting for phone');
+  await expect(page.getByTestId('pairing-code')).toHaveText(/^[A-Z0-9]{3} [A-Z0-9]{3}$/);
+  // Served on localhost only → the app says the phone can't reach it instead of showing a useless QR code.
+  await expect(page.getByText(/served on localhost only/)).toBeVisible();
+});
+
+test('app shell works offline after the first visit (PWA)', async ({ page, context }) => {
+  await page.goto('/#/touch');
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  // The first load may not be controlled yet; reload once so the SW serves the page.
+  await page.reload();
+  await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByTestId('virtual-keyboard')).toBeVisible();
+  await page.locator('[data-key="KeyO"]').click();
+  await expect(page.getByTestId('editor')).toHaveValue('o');
+  await context.setOffline(false);
+});
+
+test('editor text survives a reload (IndexedDB draft)', async ({ page }) => {
+  await page.goto('/#/touch');
+  for (const k of ['KeyS', 'KeyA', 'KeyV', 'KeyE']) await page.locator(`[data-key="${k}"]`).click();
+  await page.waitForTimeout(700); // autosave debounce
+  await page.reload();
+  await expect(page.getByTestId('editor')).toHaveValue('save');
 });
 
 test('settings persist after reload', async ({ page }) => {

@@ -1,177 +1,192 @@
 # NEO TYPE
 
-A dual-input virtual keyboard with a laser-holographic look. You type by touching the screen (**Touch Mode**). Later you'll also be able to type in the air above your desk while a phone camera tracks your fingers (**Air Mode**). Both modes feed **one keyboard engine**.
+A dual-input virtual keyboard with a laser-holographic look. You can type in two ways:
 
-Target setup: Microsoft Surface Pro 7 (touchscreen + Surface Pen), with a Samsung Galaxy S25 Ultra as the external camera.
+- **Touch Mode:** type on the Surface touchscreen with a finger, the Surface Pen, a mouse or the trackpad.
+- **Air Mode:** type with your fingers above the desk while your **phone's camera** watches your hands. The phone streams video to the Surface over Wi-Fi (WebRTC), and **MediaPipe** finds your fingertips on the Surface.
 
-> **Status: v0.2 (Stage 0 + Stage 1 complete, Stage 2 core complete).**
-> Touch Mode is fully functional. Air Mode (phone camera, hand tracking, calibration) is **not implemented yet**. The app says so wherever Air Mode appears, and it never simulates a connection or tracking data. See [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md).
+Both modes feed the same keyboard engine, editor, settings and visuals.
 
----
+Target setup: Microsoft Surface Pro 7 (i7, 16 GB) and a Samsung Galaxy S25 Ultra. No cloud, no API keys, no extra hardware.
 
-## What works today
-
-| Feature | State |
-| --- | --- |
-| Laser keyboard, full US QWERTY (letters, digits, punctuation, Backspace, Enter, Space, Tab, Esc, Shift ×2, Caps, Ctrl, Alt, Fn, arrows) | ✅ |
-| Fn layer: F1–F12, Home/End/PgUp/PgDn, Delete | ✅ |
-| Finger, Surface Pen, mouse, trackpad through one Pointer Events path | ✅ (pen/touch verified with Chromium's real touch/pen event injection; still needs a check on the device) |
-| Multi-touch chords (hold Shift with one finger, type with another) | ✅ |
-| Tap-to-latch one-shot Shift/Ctrl/Alt/Fn, Caps Lock | ✅ |
-| Hold-to-repeat, duplicate suppression, stuck-key release on blur / tab switch / mode switch | ✅ |
-| Editor: caret, selection, Shift+arrows, Ctrl+A/C/X/V/Z/Y, word delete, undo/redo, counters | ✅ |
-| Copy, download as TXT, clear with confirmation | ✅ |
-| Laser (red) and Holo (cyan + red) themes | ✅ |
-| WebGL laser surface behind the keys (grid, emitter fan, sweep, press ripples) + 3D hero | ✅ |
-| High / Balanced / Low quality (Low turns WebGL off and never downloads Three.js) | ✅ |
-| Live performance monitor (measured FPS, frame time, input latency, WebGL cost, long tasks) | ✅ |
-| Settings saved locally (general, touch, air, performance, privacy) | ✅ |
-| Landscape and portrait layouts | ✅ |
-| Phone camera link (WebRTC + signaling, QR pairing) | ⬜ Stage 3 |
-| Hand tracking (MediaPipe Hand Landmarker) | ⬜ Stage 4 |
-| Calibration wizard + air press detection | ⬜ Stage 5 |
-| PWA / offline install | ⬜ Stage 7 |
+> **Version 1.0.0.** All seven stages of the specification are implemented and tested automatically. That includes the full camera pipeline, using MediaPipe's own hand photos as a fake camera.
+> **Not yet tested on the real devices** (Surface touchscreen and pen, the S25 Ultra camera, real hands typing in the air). Read [Known limitations](docs/LIMITATIONS.md) before judging Air Mode.
 
 ---
 
-## Run it on Windows (Surface Pro 7)
+## Quick start on Windows (Surface Pro 7)
 
-**Requirements:** [Node.js](https://nodejs.org/) 20.19+ (22 LTS recommended), Git, and Microsoft Edge or Chrome.
+**Requirements:** Node.js **22.18 or newer** (22 LTS), Git, and Microsoft Edge or Chrome. The Surface and the phone must be on the **same Wi-Fi**.
 
 Open **PowerShell**:
 
 ```powershell
+winget install OpenJS.NodeJS.LTS        # skip if `node -v` already shows v22.18+
 git clone https://github.com/qaessafty-arch/Null-Keyboard-.git neo-type
 cd neo-type
-git checkout ccr-b9a5f49f-5ewgay   # until this branch is merged
-npm install
-npm run dev
+git checkout ccr-b9a5f49f-5ewgay        # until this branch is merged
+npm install                             # also fetches the 8 MB hand-tracking model
+npm start                               # builds, then serves HTTPS on port 8443
 ```
 
-Open **http://localhost:5173** in Edge. Press **F11** (or use the ⛶ button in the top bar) for fullscreen.
+`npm start` prints two addresses:
 
-Production build, served locally:
-
-```powershell
-npm run build
-npm run preview          # http://localhost:4173
+```
+On this PC:   https://localhost:8443
+On the phone: https://192.168.x.x:8443
 ```
 
-### Tips for the Surface
+1. On the **Surface**, open `https://localhost:8443` in Edge. The certificate warning appears once: choose **Advanced → Continue**. See [Trusted HTTPS with mkcert](#optional-trusted-https-with-mkcert) to remove it.
+2. If **Windows Firewall** asks about Node.js, allow it on **Private networks**. Your Wi-Fi must be set to *Private* in Windows network settings.
+3. Touch Mode works right away. Air Mode needs the phone; see the next section.
 
-- Use the **Balanced** quality mode (the default). If the FPS in the status bar drops below about 45, switch to **Low** in Settings → Performance.
-- The editor uses `inputmode="none"`, so the Windows touch keyboard should **not** pop up when you tap the text area. If it still does, turn off *Settings → Time & language → Typing → Touch keyboard → "Show the touch keyboard when there's no keyboard attached"*.
-- A long press with the pen or a finger on a key never opens the context menu.
+Press **F11** (or the ⛶ button) for fullscreen. To stop the server, press **Ctrl+C** in PowerShell.
 
----
+## Connecting the Samsung phone
 
-## Development commands
+1. On the Surface: **Air Mode → Connect phone → Start pairing**. A QR code and a 6-character code appear.
+2. On the S25 Ultra, scan the QR code with the **Camera** app and open the link in Chrome or Samsung Internet. You can also type the "On the phone" address and enter the code.
+3. On the certificate warning, choose **Advanced → Proceed**. Phones only allow the camera on HTTPS pages, which is why the server uses HTTPS.
+4. Tap **Start camera** and allow camera access. The rear camera is chosen by default; if the phone offers several lenses, you can switch between them on the phone page.
+5. The Surface shows **Phone connected** with a live preview, the video resolution, FPS, round-trip time, packet loss and bitrate. The red **CAM** badge in the top bar means the phone camera is live.
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Vite dev server on http://localhost:5173 |
-| `npm run dev:lan` | Same, reachable from other devices on your network (HTTP only, see below) |
-| `npm run build` | Type-check + production build into `dist/` |
-| `npm run preview` | Serve the production build on http://localhost:4173 |
-| `npm run typecheck` | TypeScript only |
-| `npm test` | Unit + integration tests (Vitest + React Testing Library, jsdom) |
-| `npm run test:e2e` | End-to-end tests in Chromium (Playwright). First time on a new machine: `npx playwright install chromium` |
+**Camera placement:** prop the phone about **35–50 cm above the desk** (a stack of books works) and point it down at your hands. Tilting it so it looks from slightly in front makes fingertip presses easier to see. Keep both hands in the picture, avoid direct sunlight, and use a plain matte surface.
 
----
-
-## Phone camera connection (Air Mode)
-
-**Not available in this build.** The *Connect* screen shows the real link state ("No phone linked"), checks whether this browser supports what pairing will need (secure context, WebRTC, WebSocket, `requestVideoFrameCallback`), and explains the planned flow. It does not generate fake pairing codes.
-
-Planned flow (Stage 3):
-
-1. On the Surface: **Air Mode → Connect phone**. A QR code and a 6-character code appear.
-2. On the S25 Ultra: scan the QR code with the camera app (or open the link and type the code).
-3. Allow camera access and choose the **rear camera**.
-4. The phone streams directly to the Surface over WebRTC on your Wi-Fi. A small local signaling server only exchanges connection setup messages, never video.
-
-**HTTPS requirement:** phones only allow camera access on HTTPS pages (or `localhost`). Stage 3 will document a local certificate setup with [`mkcert`](https://github.com/FiloSottile/mkcert) so the phone trusts the Surface's dev server.
-
-**Camera placement:** about 35–50 cm above the desk, looking down, with both hands in frame. Avoid direct sunlight and glossy surfaces. A stack of books makes a good stand.
+If the phone loses Wi-Fi, gets locked, or either page reloads, the two sides reconnect on their own. **Disconnect** on the Surface turns the phone's camera off.
 
 ## Calibration
 
-Also arrives with Air Mode (Stage 5). The wizard has five steps: camera positioning → mark the 4 workspace corners (homography) → neutral hand pose → press calibration (depth/speed thresholds, debounce) → test typing. You can re-run it from Settings at any time.
+Open **Calibrate** with the phone connected. It takes about a minute:
+
+1. **Camera position.** Live checks: both hands visible, hand size in the frame, framing, and lighting (measured from the video).
+2. **Keyboard area.** Drag the four corners onto the desk where you want to type, or set each corner by holding your index fingertip still on it. The full key grid is drawn onto the live video, so you can see where every key is.
+3. **Resting hands.** Hold your hands still in typing position for 3 seconds. This records your neutral finger pose and natural jitter.
+4. **Press calibration.** Tap the prompted keys (F, J, D, K, Space …) at least 6 times. NEO TYPE learns which way your fingertips move when you press from this camera angle, and how far. It also reports how clearly a press stands out from jitter and how many presses landed on the right key.
+   - If presses aren't picked up from your camera angle, choose **Use dwell instead**: hold an index fingertip still on a key to type it.
+5. **Test.** Type here and watch the keys under your fingertips light up. Then choose **Start air typing**.
+
+The calibration is saved on this device (IndexedDB). You can **Recalibrate** from the Air Mode panel or Settings at any time.
+
+---
+
+## Features
+
+| Area | What you get |
+| --- | --- |
+| Keyboard | Full US QWERTY: letters, digits, punctuation, Backspace, Enter, Space, Tab, Esc, Shift ×2, Caps Lock, Ctrl, Alt, Fn, arrows. The Fn layer gives F1–F12, Home/End/PgUp/PgDn and Delete |
+| Unified engine | One engine handles every input source (`TOUCH`, `PEN`, `MOUSE`, `AIR`). Modifiers can be held or tapped once to apply to the next key; it also handles Caps Lock, hold-to-repeat and duplicate suppression, and releases keys stuck after a window blur, tab switch, mode switch or lost tracking |
+| Touch Mode | One Pointer Events path for finger, Surface Pen, mouse and trackpad, with multi-touch chords (hold Shift with one finger, type with another) |
+| Air Mode | Phone → WebRTC (local network only) → MediaPipe Hand Landmarker in a **Web Worker** (GPU, with CPU fallback) → One Euro smoothing → perspective mapping onto the keyboard plane → press detection → the engine |
+| Press detection | **Motion:** a press is calibrated fingertip motion (relative to the hand, including depth), with these safeguards:<br>• hysteresis between press and release thresholds<br>• only the finger that moved most on that hand can press<br>• confidence gate, debounce and cooldown<br>• the key is taken from where the fingertip hovered just before the press<br>• a slowly adapting baseline absorbs posture drift<br>**Dwell:** the fallback method |
+| Visual feedback | Hovered keys light up, fingertip markers sit on the keyboard (with a fill ring while dwelling), key-press animation and ripples, landmark overlay on the camera preview, readout of the last gesture, tracking-lost warning, active-hand labels with confidence |
+| Editor | Caret and selection, Shift+arrows, Ctrl+A/C/X/V/Z/Y, word delete, undo/redo, character/word/line counts, Copy, TXT download, clear with confirmation. The draft is autosaved to IndexedDB |
+| Look | Laser (red) and Holo (cyan + red) themes. A WebGL laser surface sits behind the keys and the home screen has a 3D hero. Works in landscape and portrait |
+| Performance | High / Balanced / Low quality, with automatic step-down when FPS stays low. Tracking rate (15/24/30 Hz) and GPU/CPU inference are configurable. Three.js is loaded only when needed |
+| Monitor | Every number is measured: render FPS and frame time, input latency, WebGL cost, long tasks, hand-detection rate, inference time, frame-to-result time, air press latency, camera resolution and FPS, RTT, packet loss |
+| PWA | Installable and works offline after the first visit. The hand model and wasm are cached the first time Air Mode runs |
+| Privacy | The camera turns on only after you tap Start on the phone. Video goes peer-to-peer on your network and is never recorded or uploaded. The signaling server only carries connection setup messages and validates each one (size limit, schema, rate limits, same-origin only) |
+
+---
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `npm start` | Build, then serve HTTPS on your LAN at port 8443 (`server/index.ts`). This is the normal way to run it |
+| `npm run serve` | Serve an existing build. Set `PORT=9000` to change the port, or `NEO_HTTP=1` for plain HTTP (localhost only) |
+| `npm run dev` | Vite dev server at http://localhost:5173, for Touch Mode development |
+| `npm run dev:lan` | Vite dev server over HTTPS on the LAN, for Air Mode development with the phone |
+| `npm run build` | Type-check and build into `dist/` |
+| `npm test` | Unit and integration tests (Vitest) |
+| `npm run test:e2e` | End-to-end tests in Chromium (Playwright), including the fake-camera pipeline. First run on a new machine: `npx playwright install chromium` |
+| `npm run setup:assets` | Re-copy the MediaPipe wasm and re-download the hand model (this runs automatically after `npm install`) |
+
+### Optional: trusted HTTPS with mkcert
+
+This removes the certificate warnings and lets the Surface install NEO TYPE as an app.
+
+```powershell
+winget install FiloSottile.mkcert
+mkcert -install
+mkdir certs
+mkcert -cert-file certs/cert.pem -key-file certs/key.pem localhost 127.0.0.1 192.168.x.x   # your Surface's LAN IP
+npm start
+```
+
+To make the phone trust it too: run `mkcert -CAROOT`, copy `rootCA.pem` from that folder to the phone, and install it as a **CA certificate**. On Samsung phones that's under *Settings → Security and privacy → More security settings → Install from device storage*; the menu path varies by One UI version. Without this step the phone still works after **Proceed**.
 
 ---
 
 ## Architecture
 
 ```
-Touch / Pen / Mouse ─► Pointer Events (usePointerKeyboard) ─┐
-                                                            ├─► KeyboardEngine ─► KeyboardInputEvent ─► editor, key visuals, sound, ripples, metrics
-Phone camera ─► WebRTC ─► MediaPipe ─► gestures (Stage 3–5) ┘
+PHONE  #/camera ── getUserMedia (rear) ── RTCPeerConnection ──┐  video, LAN only
+                └─ WebSocket /signal ──┐                      │
+SERVER server/ (HTTPS + signaling hub) ┘  SDP/ICE only        │
+SURFACE HostLink ◄────────────────────────────────────────────┘
+   └► HandTracker: requestVideoFrameCallback → ImageBitmap → Web Worker (MediaPipe)
+        └► HandSmoother (identity + One Euro) → AirInput: homography → KeyGeometry hit-test
+             → PressDetector (motion / dwell) ─┐
+Touch / Pen / Mouse → usePointerKeyboard ──────┴► KeyboardEngine ► editor · key visuals · sound · ripples · metrics
 ```
 
-- **`KeyboardEngine`** (`src/features/keyboard-engine/`): framework-free and fully unit-tested. Every input calls `keyDown/keyUp(key, {source, holderId, confidence})`. It owns modifiers, Caps Lock, repeat, duplicate suppression and stuck-key recovery, and emits `{key, source, action, timestamp, confidence, metadata}`.
-- **Text output** (`src/features/text-output/`): a pure `TextBuffer` model plus `keyToIntent`. The `<textarea>` is only a view of it, so editing behaves the same for every input source.
-- **Rendering** (`src/rendering/three/`): the keys are DOM elements (crisp legends, native multi-touch hit testing). WebGL draws the projection surface behind them and the 3D hero. One `useThreeCanvas` hook pauses rendering when hidden or off-screen and disposes the renderer, GL context, geometries and materials.
-- **Metrics** (`src/engine/performance/`): FPS from `requestAnimationFrame`, input latency from `PointerEvent.timeStamp` to the next frame, CPU time inside `renderer.render()`, and long tasks via `PerformanceObserver`. Anything without a real source shows "—".
-
 ```
+server/            HTTPS static server, signaling hub (+ unit tests), certificates, Vite plugins
 src/
-  app/            App shell, hash router
-  pages/          Home, Workspace (Touch/Air), Connect, Calibration, Settings, Performance, About
-  components/     keyboard/, dashboard/, common/
-  features/       keyboard-engine/, text-output/, touch-mode/
-  engine/         input/ (engine singleton + wiring), performance/
-  rendering/      three/ (useThreeCanvas, LaserSurface, HeroScene), effects/
-  stores/         settings (persisted), app, key state, notices
-  styles/         tokens, global, app
-  types/ utils/ hooks/
-tests/            unit/, integration/, e2e/
+  communication/   signaling protocol + client, WebRTC helpers, HostLink (Surface), PhoneLink (phone)
+  features/        keyboard-engine, touch-mode, hand-tracking (worker, detectors, smoother),
+                   gesture-recognition (features, PressDetector), air-mode, text-output
+  engine/          coordinates (homography), collision (key geometry), calibration, input, performance
+  rendering/       Three.js (laser surface, hero), effects
+  pages/           Home, Workspace (Touch/Air), Connect, Phone camera, Calibration, Settings, Performance, About
+  components/ stores/ hooks/ styles/ types/ utils/
+tests/             unit/ integration/ e2e/ (+ fixtures: MediaPipe hand image as fake camera)
+docs/              USER_GUIDE.md, LIMITATIONS.md
 ```
 
----
-
-## Testing report (2026-11-20, Linux CI container, headless Chromium 1368×912)
+## Testing report (2026-11-20, Linux CI container, headless Chromium)
 
 | Suite | Result |
 | --- | --- |
 | `npm run typecheck` | ✅ no errors |
-| `npm test`: 5 files, 67 tests (engine, text model, intents, layout, stats, React integration with pointer events) | ✅ 67 passed |
-| `npm run test:e2e`: 11 Playwright tests | ✅ 11 passed |
-| `npm run build` | ✅ main bundle 293 KB (92 KB gzip); Three.js split into a lazy chunk |
+| `npm test`: 8 files, **104 tests** | ✅ all pass |
+| `npm run test:e2e`: **19 tests** (13 UI + 6 camera pipeline) | ✅ all pass |
+| `npm run build` | ✅ app 374 KB JS (120 KB gzip); Three.js and the tracking worker in separate chunks |
 
-The e2e suite covers:
-- mouse typing
-- **real touch events** injected through Chrome DevTools Protocol, including a two-finger Shift chord
-- **pen pointer events** reported as `PEN`
-- Touch ⇄ Air switching keeps the text
-- Air Mode never claims a camera connection
-- settings persist across reload
-- WebGL laser surface runs in Balanced quality and is removed in Low
-- measured FPS and latency appear
-- every screen renders with zero console errors
-- the portrait layout has no horizontal overflow
+What the tests cover:
 
-**Not verifiable in this environment** (needs the real hardware): Surface touchscreen feel, Surface Pen pressure/hover, and FPS on the Surface's Intel Iris Plus GPU. The container used software WebGL (SwiftShader) and measured about 25–30 FPS with WebGL on; a real GPU should be much faster.
+- **Unit tests:**
+  - the keyboard engine (every key, modifiers, latching, repeat, duplicates, stuck keys);
+  - the text model;
+  - the signaling hub (pairing, relay, resume, expiry, rate limiting, hijack attempts, invalid messages);
+  - homography and key hit-testing;
+  - the One Euro filter and hand identity;
+  - the press detector (hover never presses, hysteresis, finger dominance, confidence gate, debounce, look-back key choice, baseline drift, tracking loss, dwell).
+- **UI e2e tests:**
+  - mouse typing, a **real two-finger touch chord** and **pen** input injected through Chrome DevTools;
+  - mode switching keeps the text;
+  - settings and draft persistence;
+  - **offline PWA**;
+  - WebGL on/off;
+  - measured metrics;
+  - zero console errors on every screen;
+  - no portrait overflow.
+- **Camera e2e tests:** Chromium's fake camera plays MediaPipe's own two-hand test photo, and the tests check:
+  - pairing and a 1280×720 WebRTC stream;
+  - a wrong code is rejected;
+  - **reconnection** after either side reloads;
+  - **Disconnect turns the phone camera off**;
+  - MediaPipe detects **both hands at about 95 %** in the worker;
+  - the calibration wizard completes and still fingertips **dwell-type real keys, reported as `AIR`**, through the shared engine;
+  - the calibration survives a reload.
+- **Manual check:** the production `npm start` server ran the whole pipeline under its Content-Security-Policy, including GPU inference in the worker, with zero console errors.
 
-## Known limitations
+**Not verified here:**
+- **Real hardware.** The touchscreen, the Surface Pen, the S25 Ultra over real Wi-Fi, and GPU speed on Iris Plus graphics. This container renders WebGL in software: MediaPipe took about 1.8 s per frame on GPU and about 130 ms on CPU (with two hands).
+- **Motion presses with real hands.** A still image can't press, so motion detection is covered by unit tests with synthetic motion only. Expect to tune sensitivity and the activation threshold on the real setup.
 
-1. **No system-wide typing.** Browsers can't send keystrokes to other Windows apps. Use Copy or TXT download. The engine's event stream is designed so a future native companion (a small Tauri or Win32 helper on a local WebSocket) can add this.
-2. **Air Mode is not implemented yet** (Stages 3–5).
-3. **Single-camera depth.** Once Air Mode exists, press detection will rely on calibrated motion and a gesture fallback, because one camera can't measure true depth.
-4. **Clipboard paste via the on-screen Ctrl+V** depends on the browser granting clipboard-read permission. If it's refused, NEO TYPE tells you and you can paste with a physical keyboard or right-click.
-5. **One layout** (US QWERTY) and English UI for now.
-6. `navigator.deviceMemory` is capped by the browser, so System Information may show "≥ 8 GB" on a 16 GB Surface.
+## Docs
 
-## Performance recommendations
-
-- Keep **Balanced** quality on the Surface Pro 7. **Low** removes WebGL entirely (no Three.js download) and reduces glow.
-- Close other GPU-heavy tabs while using Air Mode later; hand tracking will share the integrated GPU.
-- Plug the Surface in: Windows power-saving modes throttle the GPU and lower FPS.
-- Watch **Performance → Long tasks**. If it climbs while you type, report it — it means the main thread is blocking.
-
-## Roadmap
-
-Stage 3 phone camera link → Stage 4 MediaPipe hand tracking → Stage 5 calibration + air press detection → Stage 6 optimization (auto quality step-down, leak and reconnection tests) → Stage 7 PWA, user guide, final limitations report. Details in [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md).
-
-## Privacy
-
-No camera access is requested in this build. Once Air Mode is built: the camera is requested only when you start pairing, video goes peer-to-peer from your phone to your Surface, frames are processed locally in the browser, nothing is recorded by default, and nothing is sent to any cloud or AI service. NEO TYPE uses no API keys.
+- [User guide](docs/USER_GUIDE.md): everyday use, tips and troubleshooting
+- [Known limitations](docs/LIMITATIONS.md): an honest list, with performance advice and the roadmap
+- [Development plan](DEVELOPMENT_PLAN.md): architecture decisions, stage log and the bugs found during verification

@@ -1,0 +1,72 @@
+/* Phone camera page — phone-first, no desktop shell. */
+.phone {
+  min-height: 100dvh;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  height: 100dvh;
+}
+.phone__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.phone__status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 500;
+}
+.phone__msg {
+  font-size: 14px;
+  color: var(--text-2);
+}
+.phone__form,
+.phone__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.phone__form .btn,
+.phone__controls .btn {
+  height: 52px;
+  font-size: 16px;
+}
+.phone__form .segmented {
+  align-self: stretch;
+}
+.phone__form .segmented button {
+  flex: 1;
+  justify-content: center;
+}
+.phone__code {
+  height: 60px;
+  padding: 0 16px;
+  border-radius: var(--r-m);
+  border: 1px solid rgb(var(--accent-rgb) / 0.5);
+  background: rgb(8 10 18 / 0.8);
+  font-size: 28px;
+  letter-spacing: 0.35em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.phone__select {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.phone__select .select {
+  width: 100%;
+  height: 46px;
+}
+.phone__tips {
+  margin-top: auto;
+}
+.camview--phone {
+  aspect-ratio: 16 / 9;
+}

@@ -8,10 +8,12 @@ import { useAppStore } from '@/stores/appStore';
 import { keyboardEngine } from '@/engine/input/keyboard';
 import type { InputMode } from '@/stores/settingsStore';
 import { navigate } from '@/app/Router';
+import { useAirMode } from '@/hooks/useAirMode';
 
 export function WorkspacePage({ forceMode }: { forceMode?: InputMode }) {
   const mode = useAppStore((s) => s.mode);
   const setMode = useAppStore((s) => s.setMode);
+  useAirMode(mode === 'air');
 
   useEffect(() => {
     if (forceMode && forceMode !== useAppStore.getState().mode) setMode(forceMode);
@@ -46,7 +48,7 @@ export function WorkspacePage({ forceMode }: { forceMode?: InputMode }) {
       </div>
 
       <div className="workspace__keyboard">
-        <VirtualKeyboard interactive />
+        <VirtualKeyboard interactive showAirTips={mode === 'air'} />
       </div>
     </div>
   );

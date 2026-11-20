@@ -10,9 +10,14 @@ import { CalibrationPage } from '@/pages/CalibrationPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { PerformancePage } from '@/pages/PerformancePage';
 import { AboutPage } from '@/pages/AboutPage';
+import { PhoneCameraPage } from '@/pages/PhoneCameraPage';
 import { connectKeyboardConsumers } from '@/engine/input/keyboard';
 import { startLongTaskObserver } from '@/engine/performance/metrics';
+import { startAutoQuality } from '@/engine/performance/autoQuality';
+import { startDraftAutosave } from '@/features/text-output/draft';
 import { useSettings } from '@/stores/settingsStore';
+import { hostLink } from '@/communication/camera-connection/HostLink';
+import { useCalibration } from '@/engine/calibration/profile';
 
 function renderRoute(path: string): ReactNode {
   switch (path) {
@@ -53,11 +58,30 @@ export function App() {
 
   useEffect(() => connectKeyboardConsumers(), []);
   useEffect(() => startLongTaskObserver(), []);
+  useEffect(() => (path === '/camera' ? undefined : startAutoQuality()), [path === '/camera']); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (path !== '/camera') {
+      hostLink.resumeIfSaved();
+      void useCalibration.getState().load();
+      return startDraftAutosave();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.dataset.quality = quality;
   }, [theme, quality]);
+
+  // The phone opens a bare camera page — no desktop shell.
+  if (path === '/camera') {
+    return (
+      <>
+        <PhoneCameraPage />
+        <Toasts />
+      </>
+    );
+  }
 
   return (
     <div className={`app${path === '/' ? ' app--home' : ''}`}>
